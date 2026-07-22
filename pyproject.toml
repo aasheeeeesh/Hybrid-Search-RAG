@@ -1,0 +1,23 @@
+[project]
+name = "hybrid-search-rag"
+version = "0.1.0"
+description = "Hybrid search RAG over internal docs (BM25 + dense + rerank + citation verification)"
+requires-python = ">=3.10"
+dependencies = [
+    "rank-bm25",
+    "sentence-transformers",
+    "chromadb",
+    "tiktoken",
+    "python-frontmatter",
+]
+
+[project.optional-dependencies]
+api = ["fastapi", "uvicorn", "anthropic"]
+dev = ["pytest"]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["src"]
