@@ -82,7 +82,9 @@ def merge_tiny_sections(sections, enc):
     for s in sections:
         s["token_count"] = len(enc.encode(s["text"]))
         
-    # Pass 1: Merge forward (stub merged into next section under same H2)
+    # Pass 1: Merge forward. Same H2 always allowed; very small stubs (<60) may
+    # cross H2 boundaries because an isolated ~30-token section is worse than
+    # a slightly mixed neighbour.
     merged_1 = []
     i = 0
     n = len(sections)
@@ -90,26 +92,73 @@ def merge_tiny_sections(sections, enc):
         curr = sections[i]
         if curr["token_count"] < 100 and i + 1 < n:
             nxt = sections[i + 1]
-            if get_parent_h2(curr["heading"]) == get_parent_h2(nxt["heading"]):
+            same_parent = get_parent_h2(curr["heading"]) == get_parent_h2(nxt["heading"])
+            very_small = curr["token_count"] < 60
+            if same_parent or very_small:
                 nxt["text"] = curr["text"] + "\n\n" + nxt["text"]
                 nxt["token_count"] = len(enc.encode(nxt["text"]))
                 i += 1
                 continue
         merged_1.append(curr)
         i += 1
-        
-    # Pass 2: Merge backward (remaining stubs merged into previous section under same H2)
+
+    # Pass 2: Merge backward for trailing stubs, same relaxation.
     merged_2 = []
     for s in merged_1:
         if s["token_count"] < 100 and merged_2:
             prev = merged_2[-1]
-            if get_parent_h2(s["heading"]) == get_parent_h2(prev["heading"]):
+            same_parent = get_parent_h2(s["heading"]) == get_parent_h2(prev["heading"])
+            very_small = s["token_count"] < 60
+            if same_parent or very_small:
                 prev["text"] = prev["text"] + "\n\n" + s["text"]
                 prev["token_count"] = len(enc.encode(prev["text"]))
                 continue
         merged_2.append(s)
-        
+
     return merged_2
+
+def consolidate_doc_chunks(doc_chunks, enc):
+    """Second-pass merge across all chunks of a document. Runs after per-section
+    chunking, so it catches small chunks the section-level merge could not reach
+    (e.g. an under-100 section that was on its own and had no eligible neighbour)."""
+    if len(doc_chunks) <= 1:
+        return doc_chunks
+
+    # Forward-merge pass
+    forward = []
+    i = 0
+    while i < len(doc_chunks):
+        curr = doc_chunks[i]
+        curr_tokens = len(enc.encode(curr["text"]))
+        if curr_tokens < 150 and i + 1 < len(doc_chunks):
+            nxt = doc_chunks[i + 1]
+            nxt_tokens = len(enc.encode(nxt["text"]))
+            if curr_tokens + nxt_tokens <= 550:
+                doc_chunks[i + 1] = {
+                    "section_heading": curr["section_heading"],
+                    "text": curr["text"] + "\n\n" + nxt["text"],
+                }
+                i += 1
+                continue
+        forward.append(curr)
+        i += 1
+
+    # Backward-merge pass for trailing stubs
+    final = []
+    for c in forward:
+        c_tokens = len(enc.encode(c["text"]))
+        if c_tokens < 150 and final:
+            prev = final[-1]
+            prev_tokens = len(enc.encode(prev["text"]))
+            if c_tokens + prev_tokens <= 550:
+                final[-1] = {
+                    "section_heading": prev["section_heading"],
+                    "text": prev["text"] + "\n\n" + c["text"],
+                }
+                continue
+        final.append(c)
+
+    return final
 
 def assemble_chunks(units, enc):
     chunks = []
@@ -203,7 +252,9 @@ def process_document(doc, enc):
                     "section_heading": sec["heading"],
                     "text": sc
                 })
-                
+
+    doc_chunks = consolidate_doc_chunks(doc_chunks, enc)
+
     final_chunks = []
     for idx, chunk in enumerate(doc_chunks):
         chunk_id = f"{doc['source_path']}::{idx:04d}"
