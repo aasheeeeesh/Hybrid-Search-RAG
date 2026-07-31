@@ -54,6 +54,100 @@ def split_into_sections(body):
     # Filter out empty sections
     return [s for s in sections if s["text"]]
 
+import tiktoken
+
+def get_parent_h2(heading_path):
+    if not heading_path:
+        return ""
+    return heading_path.split(" > ")[0]
+
+def is_table(paragraph):
+    lines = paragraph.split("\n")
+    if len(lines) < 2:
+        return False
+    # A markdown table has pipes in the first 2 lines or a separator line
+    has_pipe = all('|' in line for line in lines[:2])
+    has_separator = any(re.match(r'^\s*\|?\s*:?-+:?\s*\|(\s*:?-+:?\s*\|)*\s*$', line) for line in lines)
+    return has_pipe or has_separator
+
+def split_paragraph_into_sentences(paragraph):
+    if is_table(paragraph):
+        return [paragraph]
+    # Split by punctuation followed by space or newline
+    sentences = re.split(r'(?<=[.!?])\s+', paragraph)
+    return [s.strip() for s in sentences if s.strip()]
+
+def merge_tiny_sections(sections, enc):
+    # Calculate token counts
+    for s in sections:
+        s["token_count"] = len(enc.encode(s["text"]))
+        
+    merged_sections = []
+    i = 0
+    n = len(sections)
+    while i < n:
+        curr = sections[i]
+        if curr["token_count"] < 100 and i + 1 < n:
+            nxt = sections[i + 1]
+            if get_parent_h2(curr["heading"]) == get_parent_h2(nxt["heading"]):
+                nxt_text = curr["text"] + "\n\n" + nxt["text"]
+                nxt["text"] = nxt_text
+                nxt["token_count"] = len(enc.encode(nxt_text))
+                i += 1
+                continue
+        merged_sections.append(curr)
+        i += 1
+    return merged_sections
+
+def assemble_chunks(units, enc):
+    chunks = []
+    current_chunk_units = []
+    current_tokens = 0
+    
+    for unit in unit_tokens_list(units, enc):
+        unit_text, unit_tokens = unit
+        if current_chunk_units and current_tokens + unit_tokens > 500:
+            chunks.append("\n\n".join(current_chunk_units))
+            current_chunk_units = [unit_text]
+            current_tokens = unit_tokens
+        else:
+            current_chunk_units.append(unit_text)
+            current_tokens += unit_tokens
+            
+    if current_chunk_units:
+        chunks.append("\n\n".join(current_chunk_units))
+    return chunks
+
+def unit_tokens_list(units, enc):
+    return [(unit, len(enc.encode(unit))) for unit in units]
+
+def post_process_chunks(chunks, enc):
+    if len(chunks) <= 1:
+        return chunks
+    
+    processed = []
+    i = 0
+    while i < len(chunks):
+        curr = chunks[i]
+        curr_tokens = len(enc.encode(curr))
+        if curr_tokens < 150 and i + 1 < len(chunks):
+            nxt = chunks[i+1]
+            nxt_tokens = len(enc.encode(nxt))
+            if curr_tokens + nxt_tokens <= 550:
+                chunks[i+1] = curr + "\n\n" + nxt
+                i += 1
+                continue
+        elif curr_tokens < 150 and processed:
+            prev = processed[-1]
+            prev_tokens = len(enc.encode(prev))
+            if curr_tokens + prev_tokens <= 550:
+                processed[-1] = prev + "\n\n" + curr
+                i += 1
+                continue
+        processed.append(curr)
+        i += 1
+    return processed
+
 def load_document(path, raw_dir):
     post = frontmatter.load(path)
     title = post.metadata.get("title", "")
@@ -65,6 +159,53 @@ def load_document(path, raw_dir):
         "source_path": source_path
     }
 
+def process_document(doc, enc):
+    sections = split_into_sections(doc["body"])
+    merged_sections = merge_tiny_sections(sections, enc)
+    
+    doc_chunks = []
+    for sec in merged_sections:
+        if sec["token_count"] <= 500:
+            doc_chunks.append({
+                "section_heading": sec["heading"],
+                "text": sec["text"]
+            })
+        else:
+            paragraphs = [p.strip() for p in sec["text"].split("\n\n") if p.strip()]
+            units = []
+            for p in paragraphs:
+                if is_table(p):
+                    units.append(p)
+                else:
+                    p_tokens = len(enc.encode(p))
+                    if p_tokens > 400:
+                        units.extend(split_paragraph_into_sentences(p))
+                    else:
+                        units.append(p)
+            
+            sub_chunks = assemble_chunks(units, enc)
+            sub_chunks = post_process_chunks(sub_chunks, enc)
+            
+            for sc in sub_chunks:
+                doc_chunks.append({
+                    "section_heading": sec["heading"],
+                    "text": sc
+                })
+                
+    final_chunks = []
+    for idx, chunk in enumerate(doc_chunks):
+        chunk_id = f"{doc['source_path']}::{idx:04d}"
+        tokens = len(enc.encode(chunk["text"]))
+        final_chunks.append({
+            "chunk_id": chunk_id,
+            "source_path": doc["source_path"],
+            "doc_title": doc["title"],
+            "section_heading": chunk["section_heading"],
+            "text": chunk["text"],
+            "token_count": tokens
+        })
+    return final_chunks
+
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Ingest markdown documents")
@@ -72,17 +213,27 @@ if __name__ == "__main__":
     parser.add_argument("--output", default="data/processed/chunks.json", help="Path to output chunks JSON")
     args = parser.parse_args()
     
-    # For testing Step 3, print split sections
+    # For testing Step 4, print processed chunks
     test_file = os.path.join(args.input, "people-group/anti-harassment.md")
     if os.path.exists(test_file):
+        enc = tiktoken.get_encoding("cl100k_base")
         doc = load_document(test_file, args.input)
-        sections = split_into_sections(doc["body"])
-        print("=== STEP 3 TEST: SPLIT SECTIONS ===")
+        chunks = process_document(doc, enc)
+        print("=== STEP 4 TEST: CHUNKS ===")
         print(f"File: {doc['source_path']}")
-        print(f"Total sections found: {len(sections)}")
-        for idx, sec in enumerate(sections[:5]):
-            print(f"\nSection {idx+1}:")
-            print(f"  Heading Path: {sec['heading']!r}")
-            print(f"  Snippet (100 chars): {sec['text'][:100]!r}")
+        print(f"Total chunks produced: {len(chunks)}")
+        # Print a histogram of chunk sizes for this file
+        sizes = [c["token_count"] for c in chunks]
+        h_100 = sum(1 for s in sizes if s < 100)
+        h_100_299 = sum(1 for s in sizes if 100 <= s < 300)
+        h_300_500 = sum(1 for s in sizes if 300 <= s <= 500)
+        h_500 = sum(1 for s in sizes if s > 500)
+        print(f"Histogram for this file: <100: {h_100}, 100-299: {h_100_299}, 300-500: {h_300_500}, >500: {h_500}")
+        for idx, chunk in enumerate(chunks[:3]):
+            print(f"\nChunk {idx+1}:")
+            print(f"  ID: {chunk['chunk_id']!r}")
+            print(f"  Heading Path: {chunk['section_heading']!r}")
+            print(f"  Token Count: {chunk['token_count']}")
+            print(f"  Text (200 chars): {chunk['text'][:200]!r}")
     else:
         print(f"Test file {test_file} not found")
