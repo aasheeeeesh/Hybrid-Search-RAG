@@ -82,7 +82,8 @@ def merge_tiny_sections(sections, enc):
     for s in sections:
         s["token_count"] = len(enc.encode(s["text"]))
         
-    merged_sections = []
+    # Pass 1: Merge forward (stub merged into next section under same H2)
+    merged_1 = []
     i = 0
     n = len(sections)
     while i < n:
@@ -90,14 +91,25 @@ def merge_tiny_sections(sections, enc):
         if curr["token_count"] < 100 and i + 1 < n:
             nxt = sections[i + 1]
             if get_parent_h2(curr["heading"]) == get_parent_h2(nxt["heading"]):
-                nxt_text = curr["text"] + "\n\n" + nxt["text"]
-                nxt["text"] = nxt_text
-                nxt["token_count"] = len(enc.encode(nxt_text))
+                nxt["text"] = curr["text"] + "\n\n" + nxt["text"]
+                nxt["token_count"] = len(enc.encode(nxt["text"]))
                 i += 1
                 continue
-        merged_sections.append(curr)
+        merged_1.append(curr)
         i += 1
-    return merged_sections
+        
+    # Pass 2: Merge backward (remaining stubs merged into previous section under same H2)
+    merged_2 = []
+    for s in merged_1:
+        if s["token_count"] < 100 and merged_2:
+            prev = merged_2[-1]
+            if get_parent_h2(s["heading"]) == get_parent_h2(prev["heading"]):
+                prev["text"] = prev["text"] + "\n\n" + s["text"]
+                prev["token_count"] = len(enc.encode(prev["text"]))
+                continue
+        merged_2.append(s)
+        
+    return merged_2
 
 def assemble_chunks(units, enc):
     chunks = []
@@ -208,32 +220,48 @@ def process_document(doc, enc):
 
 if __name__ == "__main__":
     import argparse
+    import json
+    
     parser = argparse.ArgumentParser(description="Ingest markdown documents")
     parser.add_argument("--input", default="data/raw", help="Path to raw markdown directory")
     parser.add_argument("--output", default="data/processed/chunks.json", help="Path to output chunks JSON")
     args = parser.parse_args()
     
-    # For testing Step 4, print processed chunks
-    test_file = os.path.join(args.input, "people-group/anti-harassment.md")
-    if os.path.exists(test_file):
-        enc = tiktoken.get_encoding("cl100k_base")
-        doc = load_document(test_file, args.input)
-        chunks = process_document(doc, enc)
-        print("=== STEP 4 TEST: CHUNKS ===")
-        print(f"File: {doc['source_path']}")
-        print(f"Total chunks produced: {len(chunks)}")
-        # Print a histogram of chunk sizes for this file
-        sizes = [c["token_count"] for c in chunks]
-        h_100 = sum(1 for s in sizes if s < 100)
-        h_100_299 = sum(1 for s in sizes if 100 <= s < 300)
-        h_300_500 = sum(1 for s in sizes if 300 <= s <= 500)
-        h_500 = sum(1 for s in sizes if s > 500)
-        print(f"Histogram for this file: <100: {h_100}, 100-299: {h_100_299}, 300-500: {h_300_500}, >500: {h_500}")
-        for idx, chunk in enumerate(chunks[:3]):
-            print(f"\nChunk {idx+1}:")
-            print(f"  ID: {chunk['chunk_id']!r}")
-            print(f"  Heading Path: {chunk['section_heading']!r}")
-            print(f"  Token Count: {chunk['token_count']}")
-            print(f"  Text (200 chars): {chunk['text'][:200]!r}")
-    else:
-        print(f"Test file {test_file} not found")
+    enc = tiktoken.get_encoding("cl100k_base")
+    
+    all_chunks = []
+    processed_count = 0
+    
+    for root, _, files in os.walk(args.input):
+        for f in files:
+            if f.endswith(".md"):
+                file_path = os.path.join(root, f)
+                try:
+                    doc = load_document(file_path, args.input)
+                    chunks = process_document(doc, enc)
+                    all_chunks.extend(chunks)
+                    processed_count += 1
+                except Exception as e:
+                    print(f"Error processing {file_path}: {e}")
+                    
+    output_dir = os.path.dirname(args.output)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+        
+    with open(args.output, "w", encoding="utf-8") as out_f:
+        json.dump(all_chunks, out_f, indent=2, ensure_ascii=False)
+        
+    sizes = [c["token_count"] for c in all_chunks]
+    h_100 = sum(1 for s in sizes if s < 100)
+    h_100_299 = sum(1 for s in sizes if 100 <= s < 300)
+    h_300_500 = sum(1 for s in sizes if 300 <= s <= 500)
+    h_500 = sum(1 for s in sizes if s > 500)
+    
+    print("=== CORPUS INGESTION COMPLETE ===")
+    print(f"Total files processed: {processed_count}")
+    print(f"Total chunks produced: {len(all_chunks)}")
+    print("Chunk-count histogram:")
+    print(f"  <100 tokens:    {h_100}")
+    print(f"  100-299 tokens: {h_100_299}")
+    print(f"  300-500 tokens: {h_300_500}")
+    print(f"  >500 tokens:    {h_500}")
