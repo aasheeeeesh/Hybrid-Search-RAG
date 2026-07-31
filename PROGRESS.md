@@ -57,15 +57,15 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
   - ✅ Corpus: `security/` + `people-group/` + `people-policies/` → `data/raw/`
   - ✅ Count: **556 .md files, 5.1 MB** (engineering/ excluded — 1209 files, too slow for CPU embedding)
 
-- ⬜ **Phase 1 — Ingestion & chunking** (1–2 days)
-  - Parse MD → plain text; keep front matter `title` as metadata (python-frontmatter)
-  - Strip Hugo shortcodes: `{{% ... %}}` and `{{< ... >}}` blocks
-  - Heading-aware chunking on `##`/`###`, ~300–500 tokens (tiktoken-measured)
-  - Never split a markdown table mid-chunk; drop link targets, keep link text
-  - Attach metadata: source path, section heading, chunk id
-  - Output: one JSON of chunks in `data/processed/`
-  - Checkpoint: any chunk reads as a coherent standalone passage
-  - Note: many topics are folders with `_index.md` + sub-pages (Hugo); glob `**/*.md`
+- ✅ **Phase 1 — Ingestion & Chunking**
+  - ✅ Parse MD → plain text; keep front matter `title` as metadata (python-frontmatter)
+  - ✅ Strip Hugo shortcodes: `{{% ... %}}` and `{{< ... >}}` blocks
+  - ✅ Heading-aware chunking on `##`/`###`, ~300–500 tokens (tiktoken-measured)
+  - ✅ Never split a markdown table mid-chunk; drop link targets, keep link text
+  - ✅ Attach metadata: source path, section heading, chunk id
+  - ✅ Output: one JSON of chunks in `data/processed/`
+  - ✅ Checkpoint: any chunk reads as a coherent standalone passage
+  - ✅ Note: many topics are folders with `_index.md` + sub-pages (Hugo); glob `**/*.md`
 
 - ⬜ **Phase 2 — BM25 retrieval** (1 day)
   - `rank_bm25` index over chunks
