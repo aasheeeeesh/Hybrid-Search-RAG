@@ -3,12 +3,20 @@
 # Walks data/raw/, cleans .md files, splits into heading-aware chunks,
 # attaches metadata, and writes data/processed/chunks.json.
 import os
+import re
 import frontmatter
+
+def clean_body(text):
+    # Strip Hugo % shortcodes: {{% ... %}}
+    text = re.sub(r'\{\{%.*?%\}\}', '', text, flags=re.DOTALL)
+    # Strip Hugo < shortcodes: {{< ... >}}
+    text = re.sub(r'\{\{<.*?>\}\}', '', text, flags=re.DOTALL)
+    return text
 
 def load_document(path, raw_dir):
     post = frontmatter.load(path)
     title = post.metadata.get("title", "")
-    body = post.content
+    body = clean_body(post.content)
     source_path = os.path.relpath(path, start=raw_dir).replace("\\", "/")
     return {
         "title": title,
