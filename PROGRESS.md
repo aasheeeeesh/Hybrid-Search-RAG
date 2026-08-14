@@ -67,10 +67,22 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
   - ✅ Checkpoint: any chunk reads as a coherent standalone passage
   - ✅ Note: many topics are folders with `_index.md` + sub-pages (Hugo); glob `**/*.md`
 
-- ⬜ **Phase 2 — BM25 retrieval** (1 day)
-  - `rank_bm25` index over chunks
-  - CLI: query → top-5 chunks
-  - Checkpoint: keyword queries return obviously right chunks
+- ✅ **Phase 2 — BM25 retrieval**
+  - ✅ `src/index_bm25.py`: conservative tokenizer (lowercase, split whitespace +
+    `.,!?;:()[]{}<>"'/\`+=*&^%$~`, preserve `-` and `_`), Snowball stemmer
+  - ✅ Searchable text = `doc_title + section_heading + text` (headings weighted
+    naturally by appearing in indexed text)
+  - ✅ Pickled index at `data/processed/bm25_index.pkl` (7.3 MB, 2622 chunks, ~14s build)
+  - ✅ `src/retrieve_bm25.py`: `search_bm25(query, k, *, bm25, chunks)` importable
+    for Phase 5 eval hot-loop; CLI wrapper prints top-k with metadata
+  - ✅ Checkpoint queries (5 tested):
+    - `"expense reimbursement"`, `"onboarding laptop linux"`, `"gitlab-com/gl-security"`,
+      `"how do I take unpaid leave"` → all top-5 highly relevant
+    - `"anti-harassment policy"` → correct doc at rank 3 (loss to link-only chunks
+      that mention both terms in-body). Expected BM25 weakness; hybrid + rerank
+      will address in later phases.
+    - Original "sabbatical" test query dropped: term not present in this corpus
+      subset (would have been in `engineering/` which we excluded).
 
 - ⬜ **Phase 3 — Dense retrieval** (1–2 days)
   - Embed chunks with bge-small, store in Chroma
