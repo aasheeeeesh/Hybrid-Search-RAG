@@ -49,12 +49,14 @@ def tokenize(text: str) -> list[str]:
 
     Pipeline:
       1. Lowercase
-      2. Split on whitespace + punctuation including /
-           - Preserves hyphens (-) → anti-harassment, #security-identity-ops
-             remain as single compound tokens for exact-match queries.
-           - Splits on / → gitlab.com/gl-security/foo → ['gitlab.com',
-             'gl-security', 'foo'], so path-segment queries find results
-             even when the term appears inside a longer URL in the corpus.
+      2. Split on whitespace + punctuation including . and /
+           - Preserves hyphens (-) and underscores (_) → anti-harassment,
+             #security-identity-ops remain as single compound tokens for
+             exact-match queries.
+           - Splits on . and / → gitlab.com/gl-security/foo becomes
+             ['gitlab', 'com', 'gl-security', 'foo'], so path- and domain-
+             segment queries find results even when the term appears
+             inside a longer URL in the corpus.
       3. Drop empty strings
       4. Stem with Snowball English stemmer
     """
