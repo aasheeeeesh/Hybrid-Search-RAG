@@ -9,6 +9,7 @@ dependencies = [
     "chromadb",
     "tiktoken",
     "python-frontmatter",
+    "nltk",
 ]
 
 [project.optional-dependencies]
