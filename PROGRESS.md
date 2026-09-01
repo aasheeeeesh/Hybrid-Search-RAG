@@ -84,10 +84,22 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
     - Original "sabbatical" test query dropped: term not present in this corpus
       subset (would have been in `engineering/` which we excluded).
 
-- ⬜ **Phase 3 — Dense retrieval** (1–2 days)
-  - Embed chunks with bge-small, store in Chroma
-  - CLI shows BM25 vs dense side by side
-  - Checkpoint: see which queries each retriever wins
+- ✅ **Phase 3 — Dense retrieval**
+  - ✅ `src/index_dense.py`: BAAI/bge-small-en-v1.5 (384-dim), Chroma
+    PersistentClient at `.chroma/` (39 MB), hnsw:space=cosine, batch_size=32
+  - ✅ Encoding: 2622 chunks in 199s on CPU (~13 chunks/sec)
+  - ✅ `src/retrieve_dense.py`: `search_dense()` mirrors `search_bm25()` signature,
+    module-level lazy singletons for model + collection (Phase 5 hot-loop friendly),
+    distance → similarity conversion, prefix stripping on returned text
+  - ✅ `src/compare_retrievers.py`: side-by-side BM25 vs Dense with overlap counter
+  - ✅ Checkpoint (7 queries): **3 of 7 had 0/5 overlap** — empirical case for
+    hybrid. Key wins:
+    - "anti-harassment policy" → dense fixed the Phase 2 rank-3 bug (rank 1 now)
+    - "who do I contact about workplace complaints" → dense: 5/5 relevant, BM25: 0/5
+    - "unpaid leave" → 0/5 overlap, both find valid leave chunks (different)
+  - ⚠️ Known: 19.2% of chunks exceed BGE's 512-token limit (silent tail
+    truncation); of those, only 22 chunks lose >50% content. Deferred to
+    Phase 5 evals — surgical fix if it surfaces as measurable retrieval loss.
 
 - ⬜ **Phase 4 — Hybrid fusion / RRF** (½ day)
   - Reciprocal Rank Fusion: score = Σ 1/(60 + rank)
