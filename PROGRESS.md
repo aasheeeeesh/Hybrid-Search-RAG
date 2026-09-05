@@ -101,9 +101,24 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
     truncation); of those, only 22 chunks lose >50% content. Deferred to
     Phase 5 evals — surgical fix if it surfaces as measurable retrieval loss.
 
-- ⬜ **Phase 4 — Hybrid fusion / RRF** (½ day)
-  - Reciprocal Rank Fusion: score = Σ 1/(60 + rank)
-  - Checkpoint: hybrid ≥ better single retriever on every test query
+- ✅ **Phase 4 — Hybrid fusion / RRF**
+  - ✅ `src/retrieve_hybrid.py`: `search_hybrid(query, k, *, pool, bm25_hits,
+    dense_hits)` implements RRF with k_rrf=60 (Cormack 2009 default)
+  - ✅ Over-retrieval: pool=20 per retriever before fusing to k=5
+  - ✅ CLI with --pool/--k validation (usage error exit code 2)
+  - ✅ Same result-dict schema as BM25 and Dense — Phase 6 rerank and
+    Phase 5 eval treat all three retrievers interchangeably
+  - ✅ `src/compare_retrievers.py --hybrid`: 3-column view with composition
+    report (BOTH / BM25-only / Dense-only / deeper-pool)
+  - ✅ Checkpoint (7 queries): fusion behaves as designed on every query.
+    - "anti-harassment policy" → hybrid rank 1 = anti-harassment.md::0000
+      (the actual doc's Introduction). BM25 had it at rank 3, Dense at rank 2.
+      RRF math: 1/63 + 1/62 = 0.0320 ✓
+    - **6 of 35 hybrid slots (17%) came from the deeper pool** — chunks that
+      were in *neither* retriever's top-5. Concrete evidence over-retrieval
+      earns its cost.
+    - High-overlap query (expense: 4/5) → hybrid returns 4 shared + 1 unique.
+      Fusion never degrades on easy queries.
 
 - ⬜ **Phase 5 — Eval harness** (1–2 days, reused after)
   - 30–50 question → gold chunk id pairs in `eval/questions.json`
