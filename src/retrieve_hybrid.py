@@ -13,6 +13,9 @@
 #                 i∈retrievers
 # where k_rrf=60 is the paper default and rank_i is 1-indexed.
 
+import argparse
+import sys
+
 from src.retrieve_bm25 import search_bm25
 from src.retrieve_dense import search_dense
 
@@ -95,3 +98,53 @@ def search_hybrid(
             }
         )
     return results
+
+
+# ---------------------------------------------------------------------------
+# CLI pretty-printer — matches the shape of retrieve_bm25 / retrieve_dense
+# ---------------------------------------------------------------------------
+
+TEXT_PREVIEW_CHARS = 200
+
+
+def _print_results(results: list[dict], query: str) -> None:
+    print(f'\nHybrid (RRF) results for: "{query}"')
+    print("=" * 70)
+    for r in results:
+        preview = r["text"][:TEXT_PREVIEW_CHARS]
+        if len(r["text"]) > TEXT_PREVIEW_CHARS:
+            preview += " ..."
+        print(
+            f"[{r['rank']}] rrf={r['score']:.4f}  "
+            f"tokens={r['token_count']}  id={r['chunk_id']}"
+        )
+        print(f"     Title  : {r['doc_title']}")
+        print(f"     Section: {r['section_heading']}")
+        print(f"     Text   : {preview}")
+        print()
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Query BM25 + dense retrievers and print RRF-fused top-k."
+    )
+    parser.add_argument("query", help="Search query string.")
+    parser.add_argument("--k", type=int, default=5,
+                        help="Number of results to return after fusion (default: 5).")
+    parser.add_argument("--pool", type=int, default=DEFAULT_POOL,
+                        help=f"Depth to retrieve from each retriever before fusion "
+                             f"(default: {DEFAULT_POOL}).")
+    args = parser.parse_args()
+
+    if args.pool < args.k:
+        print(f"ERROR: --pool ({args.pool}) must be >= --k ({args.k}).",
+              file=sys.stderr)
+        sys.exit(2)
+
+    results = search_hybrid(args.query, k=args.k, pool=args.pool)
+
+    if not results:
+        print(f'No results returned for "{args.query}".', file=sys.stderr)
+        sys.exit(1)
+
+    _print_results(results, args.query)
