@@ -5,8 +5,25 @@ corpus of internal-style documentation using **hybrid retrieval** (BM25 keyword 
 dense vector search), **Reciprocal Rank Fusion**, **cross-encoder reranking**, and
 **NLI-based citation verification**.
 
-> **Status:** Phases 0–3 complete. Both retrievers are live and can be queried
-> side by side. Fusion (Phase 4) and the evaluation harness (Phase 5) are next.
+> **Status:** Phases 0–5 complete. Eval harness live — see results table below.
+> Cross-encoder reranking (Phase 6) is next.
+
+## Eval results (Phase 5)
+
+42-question gold set over the GitLab Handbook corpus (security + people-group + people-policies).
+k=10 retrieval; gold chunk must appear in top-k to count as a hit.
+
+| Retriever | Recall@1 | Recall@5 | Recall@10 | MRR@10 |
+|---|:---:|:---:|:---:|:---:|
+| BM25 | 35.7% | 57.1% | 71.4% | 0.458 |
+| Dense (BGE) | 35.7% | 64.3% | 76.2% | 0.464 |
+| **Hybrid (RRF)** | **40.5%** | **71.4%** | **76.2%** | **0.527** |
+
+**Hybrid Recall@5 (71.4%) beats BM25 by +14.3 pp and Dense by +7.1 pp.**
+MRR lifts from 0.458 → 0.527 (+15% relative) — hybrid consistently ranks the right
+chunk higher, not just finds it more often.
+
+Cross-encoder reranking (Phase 6) will push these numbers further.
 
 ## Why hybrid?
 
@@ -125,8 +142,8 @@ python -m src.compare_retrievers "how do I take unpaid leave" --k 5
 | 1 | Ingestion & chunking (2,622 chunks; 89 % between 100–500 tok) | ✅ |
 | 2 | BM25 retrieval (Snowball stemmer, index at 7.3 MB, ~14 s build) | ✅ |
 | 3 | Dense retrieval (BGE + Chroma, 39 MB, ~3 min build) + comparison CLI | ✅ |
-| 4 | Hybrid fusion (Reciprocal Rank Fusion) | ⬜ |
-| 5 | Evaluation harness (recall@5 across BM25 / dense / hybrid) | ⬜ |
+| 4 | Hybrid fusion (Reciprocal Rank Fusion) | ✅ |
+| 5 | Evaluation harness (recall@5: BM25 57.1% / Dense 64.3% / Hybrid 71.4%) | ✅ |
 | 6 | Cross-encoder reranking (`bge-reranker-base`) | ⬜ |
 | 7 | Generation with forced citations (Claude API) | ⬜ |
 | 7.5 | NLI-based citation verification (faithfulness score) | ⬜ |
@@ -151,7 +168,13 @@ src/
 ├── retrieve_bm25.py       # Phase 2  — search_bm25() + CLI
 ├── index_dense.py         # Phase 3  — Chroma index build + persist
 ├── retrieve_dense.py      # Phase 3  — search_dense() + CLI
-└── compare_retrievers.py  # Phase 3  — side-by-side BM25 vs dense
+├── compare_retrievers.py  # Phase 3/4 — side-by-side retriever comparison
+└── retrieve_hybrid.py     # Phase 4  — RRF fusion + CLI
+
+eval/
+├── generate_questions.py  # Phase 5  — gold Q&A set generator
+├── questions.json         # Phase 5  — 42 gold question → chunk_id pairs
+└── run_eval.py            # Phase 5  — recall@1/5/10 + MRR harness
 
 data/
 ├── raw/                   # source Markdown (gitignored, redownloadable)
