@@ -3,7 +3,7 @@
 Living tracker for the Hybrid Search RAG project. Update the status boxes as phases complete.
 This file also serves as context recovery: if a chat session loses history, this rebuilds it.
 
-Last updated: 2026-07-23 (end of Phase 0)
+Last updated: 2026-10-13 (end of Phase 5)
 
 ---
 
@@ -38,9 +38,8 @@ measures retrieval recall and answer faithfulness.
 
 > Hybrid RAG system with BM25 + dense retrieval, RRF fusion, cross-encoder reranking,
 > and NLI-based citation verification; eval harness measuring retrieval recall@5 and
-> answer faithfulness. Hybrid retrieval improved recall@5 from X% to Y% over vector-only.
-
-Fill in X and Y after Phase 5/6.
+> answer faithfulness. Hybrid retrieval improved recall@5 from 64.3% (dense-only) to
+> 71.4% — a 25% relative improvement over BM25 and 11% over dense alone.
 
 ---
 
@@ -120,10 +119,25 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
     - High-overlap query (expense: 4/5) → hybrid returns 4 shared + 1 unique.
       Fusion never degrades on easy queries.
 
-- ⬜ **Phase 5 — Eval harness** (1–2 days, reused after)
-  - 30–50 question → gold chunk id pairs in `eval/questions.json`
-  - Compute recall@5 for BM25 / dense / hybrid
-  - Record results table → README
+- ✅ **Phase 5 — Eval harness**
+  - ✅ `eval/generate_questions.py`: samples diverse chunks (per-folder quota,
+    one per source path, 150+ token filter), heuristic question generation
+    from section headings + doc titles
+  - ✅ `eval/questions.json`: 42 gold Q→chunk_id pairs, hand-curated questions
+    (security: 22, people-group: 14, people-policies: 6)
+  - ✅ `eval/run_eval.py`: recall@1/5/10 + MRR@10 for BM25 / Dense / Hybrid;
+    --verbose per-query ranks, --misses flag; lazy singleton reuse (hot loop)
+  - ✅ **Results (42 questions, k=10):**
+
+    | Retriever | R@1 | R@5 | R@10 | MRR@10 |
+    |---|:---:|:---:|:---:|:---:|
+    | BM25 | 35.7% | 57.1% | 71.4% | 0.458 |
+    | Dense (BGE) | 35.7% | 64.3% | 76.2% | 0.464 |
+    | **Hybrid (RRF)** | **40.5%** | **71.4%** | **76.2%** | **0.527** |
+
+  - ✅ Hybrid R@5 (+14.3 pp over BM25, +7.1 pp over Dense); MRR +15% relative
+  - ✅ 10 hybrid misses analysed: 4 are explainable (1 over BGE 512-token limit,
+    1 French text vs English query, 2 deep-nesting content mismatches)
 
 - ⬜ **Phase 6 — Cross-encoder reranking** (1 day)
   - Retrieve top-20 hybrid → rerank → top-5

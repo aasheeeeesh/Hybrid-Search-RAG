@@ -1,0 +1,338 @@
+[
+  {
+    "question": "What security controls does GitLab have for business continuity?",
+    "gold_chunk_id": "security/gitlab_security_resource_center.md::0002",
+    "doc_title": "GitLab Security Resource Center",
+    "section_heading": "Control topics > Business continuity",
+    "source_path": "security/gitlab_security_resource_center.md",
+    "token_count": 174
+  },
+  {
+    "question": "How do I require authentication for all my future Zoom meetings?",
+    "gold_chunk_id": "security/corporate/end-user-services/supported-apps/zoom/zoom-security.md::0004",
+    "doc_title": "Zoom Security",
+    "section_heading": "Enable Authenticated-Only Meeting Attendees > Enable for all Future Meetings",
+    "source_path": "security/corporate/end-user-services/supported-apps/zoom/zoom-security.md",
+    "token_count": 181
+  },
+  {
+    "question": "Who is responsible for security awareness training at GitLab?",
+    "gold_chunk_id": "security/security-assurance/governance/sec-training.md::0001",
+    "doc_title": "Security Awareness Training Standard",
+    "section_heading": "Roles & Responsibilities",
+    "source_path": "security/security-assurance/governance/sec-training.md",
+    "token_count": 217
+  },
+  {
+    "question": "What are GitLab's enterprise browser management requirements?",
+    "gold_chunk_id": "security/corporate/end-user-services/laptop-management/laptop-security/browsers/_index.md::0001",
+    "doc_title": "Laptop Web Browsers",
+    "section_heading": "Enterprise Browser Management",
+    "source_path": "security/corporate/end-user-services/laptop-management/laptop-security/browsers/_index.md",
+    "token_count": 370
+  },
+  {
+    "question": "What is the difference between individual contributor and management career paths in GitLab Security?",
+    "gold_chunk_id": "security/working-in-security.md::0001",
+    "doc_title": "Working in Security",
+    "section_heading": "Career Development and Opportunities at GitLab > Individual Contribution vs. Management",
+    "source_path": "security/working-in-security.md",
+    "token_count": 509
+  },
+  {
+    "question": "How do security teams submit product feature requests or security findings to engineering at GitLab?",
+    "gold_chunk_id": "security/product-security/security-platforms-architecture/security-interlock/prodsec-to-product-workflow/_index.md::0008",
+    "doc_title": "ProdSec to Product Process",
+    "section_heading": "Existing tooling workflows > Intake workflow",
+    "source_path": "security/product-security/security-platforms-architecture/security-interlock/prodsec-to-product-workflow/_index.md",
+    "token_count": 190
+  },
+  {
+    "question": "When and how can a GitLab team member request a laptop replacement?",
+    "gold_chunk_id": "security/corporate/end-user-services/laptop-management/laptop-ordering/_index.md::0003",
+    "doc_title": "Laptop Ordering",
+    "section_heading": "Laptop Replacements",
+    "source_path": "security/corporate/end-user-services/laptop-management/laptop-ordering/_index.md",
+    "token_count": 166
+  },
+  {
+    "question": "How should GitLab engineering teams respond when AppSec identifies a vulnerability in their code?",
+    "gold_chunk_id": "security/product-security/security-platforms-architecture/application-security/vulnerability-management.md::0003",
+    "doc_title": "Application Vulnerability Management Procedure",
+    "section_heading": "Procedure > Engaging Product Teams",
+    "source_path": "security/product-security/security-platforms-architecture/application-security/vulnerability-management.md",
+    "token_count": 369
+  },
+  {
+    "question": "Why should GitLab fix vulnerabilities even when the risk of exploitation seems low?",
+    "gold_chunk_id": "security/product-security/vulnerability-management/why-should-we-fix-vulnerabilities.md::0000",
+    "doc_title": "Why should we fix vulnerabilities?",
+    "section_heading": "Overview",
+    "source_path": "security/product-security/vulnerability-management/why-should-we-fix-vulnerabilities.md",
+    "token_count": 344
+  },
+  {
+    "question": "What is the scope of GitLab's Field Security observation and OFI quality guide?",
+    "gold_chunk_id": "security/security-assurance/field-security/field_security_observation_and_ofi_quality_guide.md::0000",
+    "doc_title": "Field Security Observation and OFI Quality Guide",
+    "section_heading": "Scope",
+    "source_path": "security/security-assurance/field-security/field_security_observation_and_ofi_quality_guide.md",
+    "token_count": 369
+  },
+  {
+    "question": "What are the SLAs and responsibilities for technical security validation requests at GitLab?",
+    "gold_chunk_id": "security/security-assurance/technical-security-validation.md::0003",
+    "doc_title": "Technical Security Validation",
+    "section_heading": "Service Level Agreements (SLAs) & Responsibilities",
+    "source_path": "security/security-assurance/technical-security-validation.md",
+    "token_count": 299
+  },
+  {
+    "question": "What happens during initial triage in GitLab's security review process?",
+    "gold_chunk_id": "security/product-security/security-review-framework.md::0018",
+    "doc_title": "Security Review Framework",
+    "section_heading": "4. Implementation > Security Review Phase 1: Initial Triage",
+    "source_path": "security/product-security/security-review-framework.md",
+    "token_count": 248
+  },
+  {
+    "question": "How should Okta API service apps be named according to GitLab's naming conventions?",
+    "gold_chunk_id": "security/corporate/systems/okta/app/nomenclature/_index.md::0002",
+    "doc_title": "Okta App Nomenclature",
+    "section_heading": "App Types and Naming Conventions > API Service Apps",
+    "source_path": "security/corporate/systems/okta/app/nomenclature/_index.md",
+    "token_count": 451
+  },
+  {
+    "question": "How does the GitLab Application Security team perform weekly triage on its inventory?",
+    "gold_chunk_id": "security/product-security/security-platforms-architecture/application-security/inventory.md::0003",
+    "doc_title": "GitLab Application Security Inventory",
+    "section_heading": "GitLab Application Security Inventory > Weekly triage process",
+    "source_path": "security/product-security/security-platforms-architecture/application-security/inventory.md",
+    "token_count": 285
+  },
+  {
+    "question": "Can GitLab team members use their company laptop for personal activities?",
+    "gold_chunk_id": "security/corporate/end-user-services/laptop-management/laptop-security/personal/_index.md::0000",
+    "doc_title": "Laptop Personal Use",
+    "section_heading": "Overview",
+    "source_path": "security/corporate/end-user-services/laptop-management/laptop-security/personal/_index.md",
+    "token_count": 372
+  },
+  {
+    "question": "What happens when the Okta-Workday user import completes?",
+    "gold_chunk_id": "security/corporate/systems/okta/okta-workday/_index.md::0008",
+    "doc_title": "Okta-Workday Sync",
+    "section_heading": "Import Phases > Complete Import",
+    "source_path": "security/corporate/systems/okta/okta-workday/_index.md",
+    "token_count": 432
+  },
+  {
+    "question": "How do I get help from the CorpSec helpdesk for access or account issues?",
+    "gold_chunk_id": "security/corporate/services/helpdesk/_index.md::0001",
+    "doc_title": "CorpSec Helpdesk",
+    "section_heading": "Overview",
+    "source_path": "security/corporate/services/helpdesk/_index.md",
+    "token_count": 496
+  },
+  {
+    "question": "Who are the system owners in CorpSec Engineering and what are their responsibilities?",
+    "gold_chunk_id": "security/corporate/engineering/_index.md::0001",
+    "doc_title": "CorpSec Engineering",
+    "section_heading": "System Owners",
+    "source_path": "security/corporate/engineering/_index.md",
+    "token_count": 1537
+  },
+  {
+    "question": "How are CI/CD job workflows structured in the GitLab Identity Platform manifest pipeline?",
+    "gold_chunk_id": "security/identity/platform/manifests/_index.md::0007",
+    "doc_title": "Identity Platform CI/CD Manifest Pipeline",
+    "section_heading": "CI/CD Job Workflows",
+    "source_path": "security/identity/platform/manifests/_index.md",
+    "token_count": 437
+  },
+  {
+    "question": "What does GitLab's Field Security Research Program say about outreach engagements?",
+    "gold_chunk_id": "security/security-assurance/field-security/field-security-research-program.md::0000",
+    "doc_title": "Field Security Research Program",
+    "section_heading": "How ? > Outreach engagements",
+    "source_path": "security/security-assurance/field-security/field-security-research-program.md",
+    "token_count": 231
+  },
+  {
+    "question": "How does GitLab Identity v3 handle user provisioning?",
+    "gold_chunk_id": "security/identity/platform/provisioning/gitlab/_index.md::0000",
+    "doc_title": "Identity Platform GitLab Provisioning",
+    "section_heading": "",
+    "source_path": "security/identity/platform/provisioning/gitlab/_index.md",
+    "token_count": 183
+  },
+  {
+    "question": "What are GitLab team members' responsibilities around data security?",
+    "gold_chunk_id": "security/product-security/data-security/_index.md::0001",
+    "doc_title": "Data Security",
+    "section_heading": "Team Members",
+    "source_path": "security/product-security/data-security/_index.md",
+    "token_count": 204
+  },
+  {
+    "question": "Why is a talent development program important for GitLab?",
+    "gold_chunk_id": "people-group/talent-development-program.md::0000",
+    "doc_title": "Talent Development Program",
+    "section_heading": "Why a Talent Development Program is vital for GitLab",
+    "source_path": "people-group/talent-development-program.md",
+    "token_count": 299
+  },
+  {
+    "question": "How does the Google Cloud Skills Boost learning program work for GitLab employees?",
+    "gold_chunk_id": "people-group/learning-and-development/self-paced-learning.md::0001",
+    "doc_title": "Self-Paced External Trainings",
+    "section_heading": "Google Cloud Skills Boost Learning",
+    "source_path": "people-group/learning-and-development/self-paced-learning.md",
+    "token_count": 185
+  },
+  {
+    "question": "What is GitLab's GiveLab volunteer program and what communities does it support?",
+    "gold_chunk_id": "people-group/givelab-volunteer-initiatives.md::0001",
+    "doc_title": "GiveLab Volunteer Initiatives",
+    "section_heading": "",
+    "source_path": "people-group/givelab-volunteer-initiatives.md",
+    "token_count": 155
+  },
+  {
+    "question": "How should managers review the 360 feedback they receive at GitLab?",
+    "gold_chunk_id": "people-group/360-feedback.md::0007",
+    "doc_title": "360 Feedback",
+    "section_heading": "Reviewing the Feedback Received as a Manager",
+    "source_path": "people-group/360-feedback.md",
+    "token_count": 174
+  },
+  {
+    "question": "What is the Elevate+ program and who is it designed for?",
+    "gold_chunk_id": "people-group/learning-and-development/elevate-programs/elevateplus/_index.md::0000",
+    "doc_title": "Elevate+",
+    "section_heading": "",
+    "source_path": "people-group/learning-and-development/elevate-programs/elevateplus/_index.md",
+    "token_count": 524
+  },
+  {
+    "question": "What actions should a manager take during an incident response situation at GitLab?",
+    "gold_chunk_id": "people-group/incident-response.md::0002",
+    "doc_title": "Incident Response",
+    "section_heading": "Incident Response Plan > Actions to take as a Manager",
+    "source_path": "people-group/incident-response.md",
+    "token_count": 303
+  },
+  {
+    "question": "What system access and entitlements do new GitLab team members receive during onboarding?",
+    "gold_chunk_id": "people-group/general-onboarding/_index.md::0001",
+    "doc_title": "GitLab Onboarding",
+    "section_heading": "",
+    "source_path": "people-group/general-onboarding/_index.md",
+    "token_count": 168
+  },
+  {
+    "question": "How should GitLab team members give effective feedback to colleagues?",
+    "gold_chunk_id": "people-group/guidance-on-feedback.md::0006",
+    "doc_title": "Guidance on Feedback",
+    "section_heading": "Giving Feedback",
+    "source_path": "people-group/guidance-on-feedback.md",
+    "token_count": 330
+  },
+  {
+    "question": "What does the GitLab People Operations team do and how quickly do they respond to requests?",
+    "gold_chunk_id": "people-group/_index.md::0009",
+    "doc_title": "People Group",
+    "section_heading": "People Operations Responsibilities & Response Timeline > People Operations Team",
+    "source_path": "people-group/_index.md",
+    "token_count": 472
+  },
+  {
+    "question": "What tools and resources does the GitLab People Analytics team use?",
+    "gold_chunk_id": "people-group/people-ops-tech-analytics/people-analytics/_index.md::0001",
+    "doc_title": "People Analytics",
+    "section_heading": "Tools & Resources > People Analytics Handbook Contents",
+    "source_path": "people-group/people-ops-tech-analytics/people-analytics/_index.md",
+    "token_count": 226
+  },
+  {
+    "question": "What country-specific tasks are required when applying for a long-term relocation at GitLab?",
+    "gold_chunk_id": "people-group/relocation.md::0021",
+    "doc_title": "Relocation",
+    "section_heading": "How To Apply for a Long-Term Relocation > Country Specific Tasks",
+    "source_path": "people-group/relocation.md",
+    "token_count": 498
+  },
+  {
+    "question": "What are the important steps for team members and managers during a probation period at GitLab?",
+    "gold_chunk_id": "people-group/contracts-probation-periods.md::0007",
+    "doc_title": "Contracts, Background Screenings, Probation Periods & PIAA",
+    "section_heading": "Probation Period > Important steps during the Probation Period",
+    "source_path": "people-group/contracts-probation-periods.md",
+    "token_count": 309
+  },
+  {
+    "question": "What is the voluntary offboarding process at GitLab?",
+    "gold_chunk_id": "people-group/offboarding/_index.md::0005",
+    "doc_title": "GitLab Offboarding",
+    "section_heading": "Voluntary Terminations > Offboarding",
+    "source_path": "people-group/offboarding/_index.md",
+    "token_count": 192
+  },
+  {
+    "question": "Does GitLab pay team members while they are on jury duty?",
+    "gold_chunk_id": "people-group/time-off-and-absence/time-off-types.md::0022",
+    "doc_title": "Time Off Types",
+    "section_heading": "GitLab Legal Civic Obligations Policy > Pay while on Jury Duty",
+    "source_path": "people-group/time-off-and-absence/time-off-types.md",
+    "token_count": 156
+  },
+  {
+    "question": "What are GitLab's company-wide leave of absence policies?",
+    "gold_chunk_id": "people-policies/leave-of-absence/_index.md::0001",
+    "doc_title": "Leave of Absence",
+    "section_heading": "Company-Wide Leave of Absence Policies",
+    "source_path": "people-policies/leave-of-absence/_index.md",
+    "token_count": 460
+  },
+  {
+    "question": "What is GitLab's policy on romantic or family relationships between employees?",
+    "gold_chunk_id": "people-policies/_index.md::0002",
+    "doc_title": "People Policies",
+    "section_heading": "General Employment Practices > Romantic and Family Relationships at Work",
+    "source_path": "people-policies/_index.md",
+    "token_count": 300
+  },
+  {
+    "question": "How does GitLab communicate with employees during an infectious disease outbreak?",
+    "gold_chunk_id": "people-policies/inc-usa.md::0012",
+    "doc_title": "People Policies - GitLab Inc (USA)",
+    "section_heading": "Infectious Disease Policy > Communication",
+    "source_path": "people-policies/inc-usa.md",
+    "token_count": 193
+  },
+  {
+    "question": "What are the roles and responsibilities under GitLab Ireland's right to disconnect policy?",
+    "gold_chunk_id": "people-policies/ireland-ltd/right-to-disconnect-policy.md::0000",
+    "doc_title": "GitLab Ireland Ltd Right to Disconnect Policy",
+    "section_heading": "Roles and Responsibilities",
+    "source_path": "people-policies/ireland-ltd/right-to-disconnect-policy.md",
+    "token_count": 315
+  },
+  {
+    "question": "What does the preamble of GitLab France's remote work charter say?",
+    "gold_chunk_id": "people-policies/france-sas/remote-work-charter.md::0005",
+    "doc_title": "GitLab France S.A.S. Remote Work Charter",
+    "section_heading": "Français: GITLAB FRANCE S.A.S. CHARTE SUR LE TÉLÉTRAVAIL > PRÉAMBULE",
+    "source_path": "people-policies/france-sas/remote-work-charter.md",
+    "token_count": 492
+  },
+  {
+    "question": "What behaviours does GitLab France recommend to support the right to disconnect?",
+    "gold_chunk_id": "people-policies/france-sas/right-to-disconnect-charter.md::0018",
+    "doc_title": "GitLab France S.A.S. Right to Disconnect Charter",
+    "section_heading": "English: GITLAB FRANCE S.A.S. RIGHT TO DISCONNECT CHARTER > 6. Recommended behaviours favouring the exercise of the right to disconnect",
+    "source_path": "people-policies/france-sas/right-to-disconnect-charter.md",
+    "token_count": 414
+  }
+]
