@@ -32,22 +32,24 @@ but misses paraphrases. Dense (embedding) search captures meaning but misses rar
 literal tokens. Fusing both, then reranking the merged set with a cross-encoder,
 beats either alone.
 
-**Empirical proof from the checkpoint battery** (7 real queries against the built
-indexes; see `src/compare_retrievers.py`):
+The eval table above is the evidence. The overlap analysis below illustrates *why*
+the two retrievers are complementary — it's development intuition, not a measurement.
 
-| Query | Overlap (top-5) | Insight |
-|---|---:|---|
-| `anti-harassment policy` | 1/5 | Dense fixed a BM25 rank-3 failure — correct doc now at rank 1 |
-| `how do I take unpaid leave` | **0/5** | Total divergence — both find leave chunks, all different |
-| `gitlab-com/gl-security` | **0/5** | BM25 finds URLs; dense finds security architecture docs |
-| `expense reimbursement` | 4/5 | Both agree — hybrid barely helps on easy queries |
+**Retriever overlap during development** (7 hand-picked development queries;
+see `src/compare_retrievers.py --hybrid`):
+
+| Query | BM25 ∩ Dense (top-5) | Observation |
+|---|:---:|---|
+| `anti-harassment policy` | 1/5 | Dense puts correct doc at rank 1; BM25 had it at rank 3 |
+| `how do I take unpaid leave` | 0/5 | Total divergence — both find valid but different leave chunks |
+| `gitlab-com/gl-security` | 0/5 | BM25 finds URL matches; dense finds security architecture docs |
+| `expense reimbursement` | 4/5 | High agreement — easy query, hybrid barely changes ranking |
 | `onboarding laptop linux` | 1/5 | Different Linux setup chunks each |
 | `time off` | 1/5 | Different time-off chunks each |
-| `who do I contact about workplace complaints` | **0/5** | Dense 5/5 relevant, BM25 0/5 |
+| `who do I contact about workplace complaints` | 0/5 | Dense 5/5 relevant; BM25 0/5 |
 
-**3 of 7 queries had zero overlap in the top-5.** That's the empirical case for
-hybrid: half the time you're getting 10 relevant candidates from two retrievers
-instead of 5 with duplicates. That's the gap fusion + reranking will close.
+3 of 7 development queries had zero overlap — a signal worth pursuing, confirmed
+later by the eval harness.
 
 ## Architecture
 
@@ -153,8 +155,9 @@ python -m src.compare_retrievers "how do I take unpaid leave" --k 5
 
 - **19.2 % of chunks exceed the BGE 512-token limit** and have their tails silently
   truncated by the dense encoder. Only 22 chunks are severely affected (>50 % lost —
-  all giant tables that Phase 1 correctly refused to split). Deferred to Phase 5
-  evals; surgical fix only if measurable retrieval loss shows.
+  all giant tables that Phase 1 correctly refused to split). Phase 5 evals confirmed
+  one miss is directly caused by this (1,537-token CorpSec Engineering chunk). Fix
+  is deferred until the query set grows large enough to measure the lift.
 - **Some chunks contain raw HTML** (`<iframe>`, Font Awesome `<i>` tags) that isn't
   Hugo shortcode syntax and slipped past the cleaner. Roughly 5 % of chunks;
   BM25 tokenization treats it as noise. Same triage plan.
