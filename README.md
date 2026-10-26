@@ -1,9 +1,10 @@
 # Hybrid Search RAG over Internal Docs
 
-A retrieval-augmented generation system that answers natural-language questions over a
-corpus of internal-style documentation using **hybrid retrieval** (BM25 keyword search +
-dense vector search), **Reciprocal Rank Fusion**, **cross-encoder reranking**, and
-**NLI-based citation verification**.
+A retrieval system for natural-language questions over a corpus of internal company
+documentation. It combines **BM25 keyword search** and **dense vector search** with
+**Reciprocal Rank Fusion**, and is measured by a gold-set **evaluation harness**
+(Recall@k, MRR). Cross-encoder reranking, cited answer generation and NLI citation
+verification are the next phases.
 
 > **Status:** Phases 0–5 complete. Eval harness live — see results table below.
 > Cross-encoder reranking (Phase 6) is next.
@@ -156,11 +157,13 @@ python -m src.compare_retrievers "how do I take unpaid leave" --k 5
 - **19.2 % of chunks exceed the BGE 512-token limit** and have their tails silently
   truncated by the dense encoder. Only 22 chunks are severely affected (>50 % lost —
   all giant tables that Phase 1 correctly refused to split). Phase 5 evals confirmed
-  one miss is directly caused by this (1,537-token CorpSec Engineering chunk). Fix
-  is deferred until the query set grows large enough to measure the lift.
+  1 of the 10 hybrid misses is directly caused by this (1,537-token CorpSec
+  Engineering chunk). Not yet fixed: with a single attributable miss, the 42-question
+  set is too small to measure the lift, so the fix waits for a larger query set.
 - **Some chunks contain raw HTML** (`<iframe>`, Font Awesome `<i>` tags) that isn't
   Hugo shortcode syntax and slipped past the cleaner. Roughly 5 % of chunks;
-  BM25 tokenization treats it as noise. Same triage plan.
+  BM25 tokenization treats it as noise. The Phase 5 miss analysis traced none of the
+  10 hybrid misses to it, so cleanup is still open and low priority.
 
 ## Repo layout
 
