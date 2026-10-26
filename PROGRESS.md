@@ -139,9 +139,14 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
   - ✅ 10 hybrid misses analysed: 4 are explainable (1 over BGE 512-token limit,
     1 French text vs English query, 2 deep-nesting content mismatches)
 
-- ⬜ **Phase 6 — Cross-encoder reranking** (1 day)
-  - Retrieve top-20 hybrid → rerank → top-5
-  - Rerun evals, measure lift
+- ✅ **Phase 6 — Cross-encoder reranking** (1 day)
+  - ✅ `src/rerank.py`: hybrid top-20 → cross-encoder → top-k, CLI with `--depth`, `--model`
+  - ✅ Ceiling: hybrid Recall@20 = 36/42 (85.7%), Recall@50 = 39/42 (92.9%)
+  - ✅ MiniLM-L-6 (default): R@1 21/42, R@5 32/42, R@10 35/42, MRR 0.599, 0.9 s/query CPU
+  - ✅ bge-reranker-base: R@1 21/42, R@5 29/42, R@10 34/42, MRR 0.578, 6.1 s/query —
+    gained 2 in top 5, lost 3; dropped as default
+  - ✅ Eval harness: `rerank` retriever, Hits@5 column, per-query latency (warmup excluded)
+  - Note: running two rerank evals at once ran the machine out of memory; run one at a time
 
 - ⬜ **Phase 7 — Generation with citations** (1 day)
   - Claude answers from chunks, forced `[source §heading]` citations
