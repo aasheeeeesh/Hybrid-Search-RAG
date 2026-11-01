@@ -1,0 +1,14 @@
+[
+  {"question": "How do I bake sourdough bread at home?", "kind": "off_topic", "absent_terms": ["sourdough"]},
+  {"question": "What is the capital of Australia?", "kind": "off_topic", "absent_terms": ["capital of australia", "canberra"]},
+  {"question": "What is the boiling point of liquid nitrogen?", "kind": "off_topic", "absent_terms": ["nitrogen"]},
+  {"question": "Who won the FIFA World Cup in 2018?", "kind": "off_topic", "absent_terms": ["fifa"]},
+  {"question": "How do I teach a puppy to sit?", "kind": "off_topic", "absent_terms": ["puppy"]},
+  {"question": "How long is GitLab's sabbatical leave?", "kind": "near_miss", "absent_terms": ["sabbatical"]},
+  {"question": "Does GitLab offer pet insurance to employees?", "kind": "near_miss", "absent_terms": ["pet insurance"]},
+  {"question": "What is the dress code for GitLab employees?", "kind": "near_miss", "absent_terms": ["dress code"]},
+  {"question": "Does GitLab run a company softball league?", "kind": "near_miss", "absent_terms": ["softball"]},
+  {"question": "Does the company cafeteria serve free lunch?", "kind": "near_miss", "absent_terms": ["cafeteria", "free lunch"]},
+  {"question": "How much is the commuter benefit for office staff?", "kind": "near_miss", "absent_terms": ["commuter"]},
+  {"question": "Which vector database does GitLab use?", "kind": "near_miss", "absent_terms": ["vector database"]}
+]

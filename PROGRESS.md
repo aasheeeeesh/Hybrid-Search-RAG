@@ -3,7 +3,7 @@
 Living tracker for the Hybrid Search RAG project. Update the status boxes as phases complete.
 This file also serves as context recovery: if a chat session loses history, this rebuilds it.
 
-Last updated: 2026-10-13 (end of Phase 5)
+Last updated: 2026-11-01 (Phase 7 built; live API run pending credit)
 
 ---
 
@@ -22,18 +22,20 @@ measures retrieval recall and answer faithfulness.
 | Local project path | `C:\Users\AASHISH\projects\Hybrid-Search-RAG` | Outside OneDrive to avoid venv/git sync locks |
 | Compute | Local, CPU only | Free, teaches more; no GPU available |
 | Embedding model | `BAAI/bge-small-en-v1.5` (384-dim, ~130 MB) | Fast on CPU, plenty for this corpus |
-| Reranker | `bge-reranker-base` cross-encoder | Standard strong CPU-friendly reranker |
+| Reranker | `ms-marco-MiniLM-L-6-v2` cross-encoder | Beat `bge-reranker-base` on the gold set at ~6.5× lower latency (Phase 6) |
 | NLI (verification) | `cross-encoder/nli-deberta-v3-base` | Local claim-vs-chunk entailment |
 | Generation | Claude API | Best answers; API key added later |
 | No LangChain | Write pipeline from scratch (~400 lines) | Understanding + interview credibility |
 | Framework | FastAPI endpoint; Streamlit UI last (optional) | Demo value after retrieval works |
 
-## Resume line (target)
+## Resume line (true today)
 
-> Hybrid RAG system with BM25 + dense retrieval, RRF fusion, cross-encoder reranking,
-> and NLI-based citation verification; eval harness measuring retrieval recall@5 and
-> answer faithfulness. Hybrid retrieval improved recall@5 from 64.3% (dense-only) to
-> 71.4% — a 25% relative improvement over BM25 and 11% over dense alone.
+> Hybrid RAG retrieval with BM25 + dense search, RRF fusion and cross-encoder
+> reranking, measured by an eval harness on a 42-question gold set. Reranked hybrid
+> reached Recall@5 of 76.2% (BM25 57.1%, dense 64.3%) and MRR@10 of 0.599 (BM25 0.458).
+
+Add cited answer generation once a live run passes, and NLI citation verification and
+answer faithfulness only after Phase 7.5 is built and measured.
 
 ---
 
@@ -142,9 +144,21 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
   - ✅ Eval harness: `rerank` retriever, Hits@5 column, per-query latency (warmup excluded)
   - Note: running two rerank evals at once ran the machine out of memory; run one at a time
 
-- ⬜ **Phase 7 — Generation with citations** (1 day)
-  - Claude answers from chunks, forced `[source §heading]` citations
-  - "I don't know" path on low retrieval confidence
+- 🔄 **Phase 7 — Generation with citations** (built; live run blocked on API credit)
+  - ✅ `src/generate.py`: top reranked chunks → token-budgeted numbered context → Claude
+    structured output (claims with document-id citations) → `[source §heading]` display
+  - ✅ Claims with no valid citation are dropped and reported, never shown as answers
+  - ✅ Oversized chunks are skipped and reported, not cut (largest chunk: 33,640 tokens)
+  - ✅ `eval/calibrate_gate.py` + `eval/unanswerable.json` (12 questions, checked absent
+    from the corpus): gate at -2 blocks 5/5 off-topic and 2/7 near-miss, 0/42 answerable
+  - ✅ 17 tests pass against a simulated API; CLI gate and `--dry-run` run for real;
+    the real API rejected an invalid key as expected
+  - ⬜ **Live run:** the API accepting the request is unverified (last attempt stopped at
+    "credit balance is too low"), as are answer quality and near-miss handling. Run the
+    12 unanswerable and some gold questions, then mark this phase done.
+  - Finding: the gate only handles off-topic questions. "How long is GitLab's sabbatical
+    leave?" scores 4.34, above the lowest answerable question (3.02), though the corpus
+    never mentions sabbaticals. Near-misses depend on Claude's `answerable` field.
 
 - ⬜ **Phase 7.5 — Citation verification** (1–2 days)
   - Tier 1: structural (cited ids exist in context, claims have citations)
@@ -173,3 +187,6 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
 - Git commit email: `aashish.arya06@gmail.com` — must be verified on GitHub for
   contribution graph to show green squares.
 - `data/` is gitignored; corpus is redownloaded via script (script is part of the repo).
+- API key lives in `.env` (gitignored), loaded by `src/generate.py`.
+- Windows: `import nltk` checks `D:\nltk_data`, so a failing USB drive on D: hangs anything
+  importing BM25, with no output and no CPU use. Unplug the drive if this happens.
