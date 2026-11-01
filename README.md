@@ -2,29 +2,45 @@
 
 A retrieval system for natural-language questions over a corpus of internal company
 documentation. It combines **BM25 keyword search** and **dense vector search** with
-**Reciprocal Rank Fusion**, and is measured by a gold-set **evaluation harness**
-(Recall@k, MRR). Cross-encoder reranking, cited answer generation and NLI citation
-verification are the next phases.
+**Reciprocal Rank Fusion**, reorders the fused candidates with a **cross-encoder
+reranker**, and is measured by a gold-set **evaluation harness** (Recall@k, MRR).
+Cited answer generation and NLI citation verification are the next phases.
 
-> **Status:** Phases 0–5 complete. Eval harness live — see results table below.
-> Cross-encoder reranking (Phase 6) is next.
+> **Status:** Phases 0–6 complete. Generation with citations (Phase 7) is next.
 
-## Eval results (Phase 5)
+## Eval results
 
 42-question gold set over the GitLab Handbook corpus (security + people-group + people-policies).
 k=10 retrieval; gold chunk must appear in top-k to count as a hit.
 
-| Retriever | Recall@1 | Recall@5 | Recall@10 | MRR@10 |
-|---|:---:|:---:|:---:|:---:|
-| BM25 | 35.7% | 57.1% | 71.4% | 0.458 |
-| Dense (BGE) | 35.7% | 64.3% | 76.2% | 0.464 |
-| **Hybrid (RRF)** | **40.5%** | **71.4%** | **76.2%** | **0.527** |
+Latency is per query on CPU, models already loaded.
+
+| Retriever | Recall@1 | Recall@5 | Recall@10 | MRR@10 | Latency |
+|---|:---:|:---:|:---:|:---:|:---:|
+| BM25 | 35.7% | 57.1% | 71.4% | 0.458 | 46 ms |
+| Dense (BGE) | 35.7% | 64.3% | 76.2% | 0.464 | 20 ms |
+| Hybrid (RRF) | 40.5% | 71.4% | 76.2% | 0.527 | 68 ms |
+| **Hybrid + rerank** (MiniLM-L-6) | **50.0%** | **76.2%** | **83.3%** | **0.599** | 0.9 s |
+| Hybrid + rerank (`bge-reranker-base`) | 50.0% | 69.0% | 81.0% | 0.578 | 6.1 s |
 
 **Hybrid Recall@5 (71.4%) beats BM25 by +14.3 pp and Dense by +7.1 pp.**
 MRR lifts from 0.458 → 0.527 (+15% relative) — hybrid consistently ranks the right
 chunk higher, not just finds it more often.
 
-Cross-encoder reranking (Phase 6) will push these numbers further.
+**Reranking the hybrid top-20 puts the right chunk first for 21/42 questions
+instead of 17**, and lifts MRR from 0.527 to 0.599 (+14% relative). Recall@5 goes
+from 30/42 to 32/42. With 42 questions each question is 2.4 pp, so the Recall@5
+gain is two questions and should be read as directional; the Recall@1 and MRR
+gains are larger and matter most for Phase 7, which answers from the top chunks.
+
+**Choosing the reranker.** The larger `bge-reranker-base` (278M params) was the
+original plan. The 22M-param `ms-marco-MiniLM-L-6-v2` beat it on every metric at
+~6.5× lower latency, so it is the default. `bge-reranker-base` gained 2 questions in
+the top 5 but lost 3, pushing two gold chunks out of the top 10 entirely.
+
+**Ceiling.** A reranker can only reorder what fusion hands it. The gold chunk is in
+the hybrid top-20 for 36/42 questions (85.7%), so that is the maximum Recall@5 at
+depth 20. Depth 50 raises the ceiling to 39/42 (92.9%) at ~2.5× the rerank cost.
 
 ## Why hybrid?
 
@@ -77,6 +93,7 @@ data/raw/*.md (556 GitLab Handbook files)
               · .chroma/ (39 MB)                      │
                                                        │
                      Phase 6: cross-encoder rerank ◀───┘
+                       · hybrid top-20 → MiniLM-L-6 → top-k
                                 │
                                 ▼
                      Phase 7: Claude answer with citations
@@ -103,7 +120,8 @@ under 5 minutes end to end.
 - **Chunking:** `python-frontmatter`, `tiktoken` (`cl100k_base`)
 - **Sparse retrieval:** `rank-bm25` with an `nltk` Snowball stemmer
 - **Dense retrieval:** `sentence-transformers` (`BAAI/bge-small-en-v1.5`), `chromadb`
-- **Reranking (planned):** `bge-reranker-base` cross-encoder
+- **Reranking:** `cross-encoder/ms-marco-MiniLM-L-6-v2` via `sentence-transformers`
+  (`BAAI/bge-reranker-base` selectable for comparison)
 - **Verification (planned):** NLI model (`nli-deberta-v3-base`)
 - **Generation (planned):** Claude API
 - **Serving (planned):** FastAPI
@@ -135,6 +153,11 @@ python -m src.index_dense --build --verify     # → .chroma/  (takes ~3 min on 
 python -m src.retrieve_bm25    "how do I take unpaid leave" --k 5
 python -m src.retrieve_dense   "how do I take unpaid leave" --k 5
 python -m src.compare_retrievers "how do I take unpaid leave" --k 5
+python -m src.rerank           "how do I take unpaid leave" --k 5   # hybrid + rerank
+
+# 5. Run the eval (all four retrievers)
+python -m eval.run_eval
+python -m eval.run_eval --retriever rerank --rerank-model BAAI/bge-reranker-base
 ```
 
 ## Build phases
@@ -147,7 +170,7 @@ python -m src.compare_retrievers "how do I take unpaid leave" --k 5
 | 3 | Dense retrieval (BGE + Chroma, 39 MB, ~3 min build) + comparison CLI | ✅ |
 | 4 | Hybrid fusion (Reciprocal Rank Fusion) | ✅ |
 | 5 | Evaluation harness (recall@5: BM25 57.1% / Dense 64.3% / Hybrid 71.4%) | ✅ |
-| 6 | Cross-encoder reranking (`bge-reranker-base`) | ⬜ |
+| 6 | Cross-encoder reranking (MiniLM-L-6; MRR 0.527 → 0.599, Recall@1 40.5% → 50.0%) | ✅ |
 | 7 | Generation with forced citations (Claude API) | ⬜ |
 | 7.5 | NLI-based citation verification (faithfulness score) | ⬜ |
 | 8 | FastAPI `/query` endpoint + polish | ⬜ |
@@ -158,12 +181,16 @@ python -m src.compare_retrievers "how do I take unpaid leave" --k 5
   truncated by the dense encoder. Only 22 chunks are severely affected (>50 % lost —
   all giant tables that Phase 1 correctly refused to split). Phase 5 evals confirmed
   1 of the 10 hybrid misses is directly caused by this (1,537-token CorpSec
-  Engineering chunk). Not yet fixed: with a single attributable miss, the 42-question
+  Engineering chunk). The cross-encoder has the same 512-token input limit. Not yet fixed: with a single attributable miss, the 42-question
   set is too small to measure the lift, so the fix waits for a larger query set.
 - **Some chunks contain raw HTML** (`<iframe>`, Font Awesome `<i>` tags) that isn't
   Hugo shortcode syntax and slipped past the cleaner. Roughly 5 % of chunks;
   BM25 tokenization treats it as noise. The Phase 5 miss analysis traced none of the
   10 hybrid misses to it, so cleanup is still open and low priority.
+- **The gold questions were generated from each chunk's title and section heading**
+  (`eval/generate_questions.py`), and the reranker sees title + heading + body.
+  That may favour reranking more than real user queries would. A hand-written
+  query set is the fix.
 
 ## Repo layout
 
@@ -175,12 +202,13 @@ src/
 ├── index_dense.py         # Phase 3  — Chroma index build + persist
 ├── retrieve_dense.py      # Phase 3  — search_dense() + CLI
 ├── compare_retrievers.py  # Phase 3/4 — side-by-side retriever comparison
-└── retrieve_hybrid.py     # Phase 4  — RRF fusion + CLI
+├── retrieve_hybrid.py     # Phase 4  — RRF fusion + CLI
+└── rerank.py              # Phase 6  — cross-encoder rerank + CLI
 
 eval/
 ├── generate_questions.py  # Phase 5  — gold Q&A set generator
 ├── questions.json         # Phase 5  — 42 gold question → chunk_id pairs
-└── run_eval.py            # Phase 5  — recall@1/5/10 + MRR harness
+└── run_eval.py            # Phase 5/6 — recall@1/5/10 + MRR + latency harness
 
 data/
 ├── raw/                   # source Markdown (gitignored, redownloadable)
