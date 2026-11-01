@@ -4,9 +4,11 @@ A retrieval system for natural-language questions over a corpus of internal comp
 documentation. It combines **BM25 keyword search** and **dense vector search** with
 **Reciprocal Rank Fusion**, reorders the fused candidates with a **cross-encoder
 reranker**, and is measured by a gold-set **evaluation harness** (Recall@k, MRR).
-Cited answer generation and NLI citation verification are the next phases.
+Cited answer generation is built but not yet run against the live API; NLI citation
+verification comes after that.
 
-> **Status:** Phases 0–6 complete. Generation with citations (Phase 7) is next.
+> **Status:** Phases 0–6 complete. Phase 7 (generation with citations) is built and
+> tested against a simulated API; the live run is pending, so answer quality is unmeasured.
 
 ## Eval results
 
@@ -123,7 +125,7 @@ under 5 minutes end to end.
 - **Reranking:** `cross-encoder/ms-marco-MiniLM-L-6-v2` via `sentence-transformers`
   (`BAAI/bge-reranker-base` selectable for comparison)
 - **Verification (planned):** NLI model (`nli-deberta-v3-base`)
-- **Generation (planned):** Claude API
+- **Generation:** Claude API (`claude-opus-5-5`) with structured output
 - **Serving (planned):** FastAPI
 
 All local models run **on CPU by default**. No GPU required.
@@ -158,6 +160,13 @@ python -m src.rerank           "how do I take unpaid leave" --k 5   # hybrid + r
 # 5. Run the eval (all four retrievers)
 python -m eval.run_eval
 python -m eval.run_eval --retriever rerank --rerank-model BAAI/bge-reranker-base
+
+# 6. Answer with citations (needs API credit; put ANTHROPIC_API_KEY in a .env file)
+pip install -e ".[api,dev]"
+python -m src.generate "how do I take unpaid leave"
+python -m src.generate "how do I take unpaid leave" --dry-run   # print prompt, no API call
+python -m eval.calibrate_gate                                   # no API call
+python -m pytest tests                                          # simulated API, no cost
 ```
 
 ## Build phases
@@ -171,7 +180,7 @@ python -m eval.run_eval --retriever rerank --rerank-model BAAI/bge-reranker-base
 | 4 | Hybrid fusion (Reciprocal Rank Fusion) | ✅ |
 | 5 | Evaluation harness (recall@5: BM25 57.1% / Dense 64.3% / Hybrid 71.4%) | ✅ |
 | 6 | Cross-encoder reranking (MiniLM-L-6; MRR 0.527 → 0.599, Recall@1 40.5% → 50.0%) | ✅ |
-| 7 | Generation with forced citations (Claude API) | ⬜ |
+| 7 | Generation with forced citations (Claude API); built, live run pending | 🔄 |
 | 7.5 | NLI-based citation verification (faithfulness score) | ⬜ |
 | 8 | FastAPI `/query` endpoint + polish | ⬜ |
 
@@ -191,6 +200,11 @@ python -m eval.run_eval --retriever rerank --rerank-model BAAI/bge-reranker-base
   (`eval/generate_questions.py`), and the reranker sees title + heading + body.
   That may favour reranking more than real user queries would. A hand-written
   query set is the fix.
+- **The retrieval gate only catches off-topic questions.** At a threshold of -2 it
+  blocks 5/5 off-topic questions, 2/7 near-misses and 0/42 answerable questions
+  (`eval/calibrate_gate.py`; small, single-use sample). "How long is GitLab's sabbatical
+  leave?" scores 4.34 though the corpus never mentions sabbaticals, so near-misses rely
+  on Claude reporting that the documents don't answer them. That is not yet measured.
 
 ## Repo layout
 
@@ -203,12 +217,18 @@ src/
 ├── retrieve_dense.py      # Phase 3  — search_dense() + CLI
 ├── compare_retrievers.py  # Phase 3/4 — side-by-side retriever comparison
 ├── retrieve_hybrid.py     # Phase 4  — RRF fusion + CLI
-└── rerank.py              # Phase 6  — cross-encoder rerank + CLI
+├── rerank.py              # Phase 6  — cross-encoder rerank + CLI
+└── generate.py            # Phase 7  — cited answers from Claude + CLI
 
 eval/
 ├── generate_questions.py  # Phase 5  — gold Q&A set generator
 ├── questions.json         # Phase 5  — 42 gold question → chunk_id pairs
-└── run_eval.py            # Phase 5/6 — recall@1/5/10 + MRR + latency harness
+├── run_eval.py            # Phase 5/6 — recall@1/5/10 + MRR + latency harness
+├── unanswerable.json      # Phase 7  — 12 questions the corpus can't answer
+└── calibrate_gate.py      # Phase 7  — measures the "I don't know" threshold
+
+tests/
+└── test_generate.py       # Phase 7  — generation tests against a simulated API
 
 data/
 ├── raw/                   # source Markdown (gitignored, redownloadable)

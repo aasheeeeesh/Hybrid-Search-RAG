@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-api = ["fastapi", "uvicorn", "anthropic"]
+api = ["fastapi", "uvicorn", "anthropic", "python-dotenv"]
 dev = ["pytest"]
 
 [build-system]
