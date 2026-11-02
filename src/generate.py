@@ -7,8 +7,8 @@
 # with no valid citation never reaches the answer.
 #
 # "I don't know" has two layers, because the reranker alone can't do the job
-# (see MIN_RELEVANCE_SCORE): a score gate that rejects off-topic questions
-# without an API call, and Claude reporting that the documents don't answer it.
+# (see rerank.MIN_RELEVANCE_SCORE): a score gate that rejects off-topic questions
+# without an API call, and Claude's `answerable` field for near-miss questions.
 #
 # Provides:
 #   build_context(hits, max_tokens)              -> (context, sources, skipped)
@@ -29,7 +29,7 @@ import anthropic
 from dotenv import load_dotenv
 from pydantic import BaseModel, ValidationError
 
-from src.rerank import DEFAULT_DEPTH, search_reranked
+from src.rerank import DEFAULT_DEPTH, MIN_RELEVANCE_SCORE, search_reranked
 
 MODEL_NAME = "claude-opus-5-5"
 EFFORT = "medium"
@@ -44,15 +44,6 @@ FALLBACK_MODELS = {"claude-fable-5-1", "claude-opus-5-5", "claude-opus-5", "clau
 # Hard cap on context size. Most chunks are ~300 tokens, but four exceed 3000
 # (the largest is 33,640), so a fixed top-k alone could produce a huge prompt.
 MAX_CONTEXT_TOKENS = 3000
-
-# Below this top reranked score, answer "I don't know" without calling Claude.
-# From eval/calibrate_gate.py: off-topic questions top out at -9.78 and the
-# lowest answerable question scores 3.02. -2 leaves a margin on both sides,
-# which matters because gold questions (built from headings) likely score higher
-# than real queries. It does NOT catch near-miss questions: "How long is GitLab's
-# sabbatical leave?" scores 4.34 though the corpus never mentions sabbaticals.
-# Claude's `answerable` field handles those.
-MIN_RELEVANCE_SCORE = -2.0
 
 SYSTEM_PROMPT = """\
 You answer questions about GitLab's internal handbook, using only the documents \

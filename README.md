@@ -4,9 +4,10 @@ A retrieval system for natural-language questions over a corpus of internal comp
 documentation. It combines **BM25 keyword search** and **dense vector search** with
 **Reciprocal Rank Fusion**, reorders the fused candidates with a **cross-encoder
 reranker**, and is measured by a gold-set **evaluation harness** (Recall@k, MRR).
-A local **NLI checker** tests whether a passage supports a statement.
+A local **NLI checker** tests whether a passage supports a statement, and a **FastAPI
+service** serves the results over HTTP.
 
-> **Status:** Retrieval-only. Phases 0–6 and 7.5 are complete. An optional Claude answer
+> **Status:** Retrieval-only. Phases 0–6, 7.5 and 8 are complete. An optional Claude answer
 > generator (Phase 7) is included but has never completed a live API call, so it is tested
 > only against a simulated API and answer quality is unmeasured.
 
@@ -97,12 +98,48 @@ data/raw/*.md (556 GitLab Handbook files)
                      Phase 6: cross-encoder rerank ◀───┘
                        · hybrid top-20 → MiniLM-L-6 → top-k
                                 │
-                                ▼
-                     Phase 7.5: NLI claim checker (local)
+                                ├──> Phase 8: FastAPI /query (score gate + passages)
                                 │
-                                ▼
-                     Phase 8: FastAPI /query endpoint
+                                └──> Phase 7.5: NLI claim checker (separate CLI)
 ```
+
+## API
+
+Returns handbook passages, not generated answers, so it needs no API key.
+
+```bash
+pip install -e ".[api]"
+uvicorn src.api:app --port 8000     # try it in the browser at http://127.0.0.1:8000/docs
+```
+
+`POST /query` takes a `question` and an optional `k` (1–20, default 5):
+
+```json
+{"question": "what is the SIRT on-call schedule", "k": 3}
+```
+
+```json
+{
+  "question": "what is the SIRT on-call schedule",
+  "confident": true,
+  "top_score": 6.86,
+  "passages": [
+    {
+      "rank": 1,
+      "score": 6.86,
+      "chunk_id": "security/security-operations/secops-oncall.md::0000",
+      "source_path": "security/security-operations/secops-oncall.md",
+      "doc_title": "...",
+      "section_heading": "...",
+      "text": "..."
+    }
+  ]
+}
+```
+
+`confident` means the top passage cleared the score gate. Below the gate, `passages` is
+empty. Passing doesn't prove the passages answer the question (see caveats).
+`GET /health` returns `{"status": "ok"}`.
 
 ## Corpus
 
@@ -123,7 +160,7 @@ under 5 minutes end to end.
   (`BAAI/bge-reranker-base` selectable for comparison)
 - **Verification:** `cross-encoder/nli-deberta-v3-base` via `sentence-transformers`
 - **Generation (optional, never run live):** Claude API (`claude-opus-5-5`) with structured output
-- **Serving (planned):** FastAPI
+- **Serving:** FastAPI, Uvicorn
 
 All local models run **on CPU by default**. No GPU required.
 
@@ -163,9 +200,12 @@ python -m src.verify "Unspent growth and development budgets roll over"
 python -m eval.eval_verify --claims eval/claims_cli.json --k 5
 
 # 7. Tests and the "I don't know" gate (no API calls or cost)
-pip install -e ".[api,dev]"
+pip install -e ".[api,generation,dev]"
 python -m eval.calibrate_gate
 python -m pytest tests
+
+# 8. Serve it (see API above)
+uvicorn src.api:app --port 8000
 
 # Optional: Claude answers (paid API; put ANTHROPIC_API_KEY in a .env file)
 python -m src.generate "how do I take unpaid leave"
@@ -185,7 +225,7 @@ python -m src.generate "how do I take unpaid leave" --dry-run   # print prompt, 
 | 6 | Cross-encoder reranking (MiniLM-L-6; MRR 0.527 → 0.599, Recall@1 40.5% → 50.0%) | ✅ |
 | 7 | Optional generation with forced citations (Claude API); never run live, simulated API only | ⏸️ |
 | 7.5 | NLI claim checker (held-out, top 5 chunks: kept 13/15 supported, caught 16/19 unsupported) | ✅ |
-| 8 | FastAPI `/query` returning passages + polish | ⬜ |
+| 8 | FastAPI `/query` returning passages + score gate; no API key needed | ✅ |
 
 ## Known caveats
 
@@ -224,6 +264,14 @@ python -m src.generate "how do I take unpaid leave" --dry-run   # print prompt, 
   list or the passage lacks the title or heading that gives it context.
 - **Very long chunks are slow to check.** Passages run at about 0.15 s each on CPU, so a
   typical chunk takes under 2 s and the largest (1,199 passages) takes about 3 minutes.
+  This is why `/query` doesn't run the checker.
+- **`confident: true` doesn't mean the handbook answers the question.** The sabbatical
+  question above passes the gate at 4.34 and returns leave passages about other topics.
+- **The API is for local use and demos.** It has no authentication or rate limiting, so
+  don't expose it publicly. One running server used about 790 MB of memory and took 15–35 s
+  to start. Requests took about 3 s each, slower than the 0.9 s reranker benchmark above;
+  the laptop was short on free memory during this measurement, which may explain some of
+  the gap. Three requests at once took 8.3 s, so they gain little from running together.
 
 ## Repo layout
 
@@ -238,7 +286,8 @@ src/
 ├── retrieve_hybrid.py     # Phase 4  — RRF fusion + CLI
 ├── rerank.py              # Phase 6  — cross-encoder rerank + CLI
 ├── generate.py            # Phase 7  — optional cited answers from Claude + CLI
-└── verify.py              # Phase 7.5 — NLI claim checker + CLI
+├── verify.py              # Phase 7.5 — NLI claim checker + CLI
+└── api.py                 # Phase 8  — FastAPI /query and /health
 
 eval/
 ├── generate_questions.py  # Phase 5  — gold Q&A set generator
@@ -253,7 +302,8 @@ eval/
 
 tests/
 ├── test_generate.py       # Phase 7  — generation tests against a simulated API
-└── test_verify.py         # Phase 7.5 — checker logic with a fake model
+├── test_verify.py         # Phase 7.5 — checker logic with a fake model
+└── test_api.py            # Phase 8  — API behaviour with retrieval faked
 
 data/
 ├── raw/                   # source Markdown (gitignored, redownloadable)

@@ -13,8 +13,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-api = ["fastapi", "uvicorn", "anthropic", "python-dotenv"]
-dev = ["pytest"]
+api = ["fastapi", "uvicorn"]
+generation = ["anthropic", "python-dotenv"]
+dev = ["pytest", "httpx"]
 
 [build-system]
 requires = ["setuptools>=61.0"]
