@@ -1,0 +1,53 @@
+[
+  {"chunk_id": "people-group/time-off-and-absence/leave-types.md::0010", "kind": "supported", "claim": "Team members should give at least 30 days of advance notice for military leave whenever possible."},
+  {"chunk_id": "people-group/time-off-and-absence/leave-types.md::0010", "kind": "contradicted", "claim": "Team members must give at least 90 days of advance notice for military leave."},
+  {"chunk_id": "people-group/time-off-and-absence/leave-types.md::0010", "kind": "not_stated", "claim": "Military leave is fully paid by GitLab for up to six months."},
+
+  {"chunk_id": "security/corporate/end-user-services/supported-apps/zoom/zoom-security.md::0002", "kind": "supported", "claim": "Restricting a Zoom meeting to authenticated attendees has to be set up before the meeting starts."},
+  {"chunk_id": "security/corporate/end-user-services/supported-apps/zoom/zoom-security.md::0002", "kind": "contradicted", "claim": "Authenticated-only meetings are recommended when customers are attending."},
+  {"chunk_id": "security/corporate/end-user-services/supported-apps/zoom/zoom-security.md::0002", "kind": "not_stated", "claim": "All Zoom meetings at GitLab are recorded automatically."},
+
+  {"chunk_id": "security/corporate/end-user-services/okta/okta-enduser-faq/index.md::0001", "kind": "supported", "claim": "Okta works with the Firefox, Safari and Chrome browsers."},
+  {"chunk_id": "security/corporate/end-user-services/okta/okta-enduser-faq/index.md::0001", "kind": "contradicted", "claim": "The Okta plugin is necessary for applications that support SAML."},
+  {"chunk_id": "security/corporate/end-user-services/okta/okta-enduser-faq/index.md::0001", "kind": "not_stated", "claim": "The Okta plugin must be reinstalled every 30 days."},
+
+  {"chunk_id": "security/corporate/how-we-work/_index.md::0009", "kind": "supported", "claim": "A weight of one represents about half a day of work."},
+  {"chunk_id": "security/corporate/how-we-work/_index.md::0009", "kind": "contradicted", "claim": "A weight of one represents about one full week of work."},
+  {"chunk_id": "security/corporate/how-we-work/_index.md::0009", "kind": "not_stated", "claim": "Issue weights cannot be higher than 10."},
+
+  {"chunk_id": "security/security-operations/secops-oncall.md::0000", "kind": "supported", "claim": "The Trust & Safety team generally handles reports of cryptomining and platform spam."},
+  {"chunk_id": "security/security-operations/secops-oncall.md::0000", "kind": "contradicted", "claim": "Security Operations responds to reports of security incidents only during business hours."},
+  {"chunk_id": "security/security-operations/secops-oncall.md::0000", "kind": "not_stated", "claim": "On-call engineers receive a bonus payment for each shift."},
+
+  {"chunk_id": "people-group/contracts-probation-periods.md::0019", "kind": "supported", "claim": "In the Netherlands, best practice is one 1-year fixed term contract before moving to an indefinite contract."},
+  {"chunk_id": "people-group/contracts-probation-periods.md::0019", "kind": "contradicted", "claim": "In the Netherlands, best practice is three 1-year fixed term contracts before moving to an indefinite contract."},
+  {"chunk_id": "people-group/contracts-probation-periods.md::0019", "kind": "not_stated", "claim": "Team members relocating to the Netherlands receive a relocation bonus."},
+
+  {"chunk_id": "security/security-operations/red-team/purple-teaming/_index.md::0001", "kind": "supported", "claim": "Flash operations last between one and two weeks."},
+  {"chunk_id": "security/security-operations/red-team/purple-teaming/_index.md::0001", "kind": "contradicted", "claim": "Flash operations usually run for about six months."},
+  {"chunk_id": "security/security-operations/red-team/purple-teaming/_index.md::0001", "kind": "not_stated", "claim": "Flash operations need written approval from the Chief Information Security Officer."},
+
+  {"chunk_id": "security/internship.md::0004", "kind": "supported", "claim": "Interns do a daily check-in through Slack."},
+  {"chunk_id": "security/internship.md::0004", "kind": "contradicted", "claim": "Interns check in once a month by email."},
+  {"chunk_id": "security/internship.md::0004", "kind": "not_stated", "claim": "Interns receive a monthly housing stipend."},
+
+  {"chunk_id": "people-group/engagement.md::0025", "kind": "supported", "claim": "The FY22 Q4 pulse engagement survey reached 87% participation."},
+  {"chunk_id": "people-group/engagement.md::0025", "kind": "contradicted", "claim": "The FY22 Q4 pulse engagement survey reached only 40% participation."},
+  {"chunk_id": "people-group/engagement.md::0025", "kind": "not_stated", "claim": "The FY22 Q4 pulse engagement survey was run by an external consulting firm."},
+
+  {"chunk_id": "security/corporate/systems/nira/_index.md::0002", "kind": "supported", "claim": "Signing in to Nira requires a Google work email account and password."},
+  {"chunk_id": "security/corporate/systems/nira/_index.md::0002", "kind": "contradicted", "claim": "Signing in to Nira does not use a Google account."},
+  {"chunk_id": "security/corporate/systems/nira/_index.md::0002", "kind": "not_stated", "claim": "Nira emails a weekly report of shared files to every team member."},
+
+  {"chunk_id": "security/corporate/systems/okta/api/_index.md::0001", "kind": "supported", "claim": "Each integration or service needs its own unique API Service app."},
+  {"chunk_id": "security/corporate/systems/okta/api/_index.md::0001", "kind": "contradicted", "claim": "One API Service app can be reused for any number of unrelated purposes."},
+  {"chunk_id": "security/corporate/systems/okta/api/_index.md::0001", "kind": "not_stated", "claim": "API Service app credentials expire after 90 days."},
+
+  {"chunk_id": "security/security-operations/sirt/security-incident-communication-plan.md::0012", "kind": "supported", "claim": "Back-up approvers are engaged if a key approver has not responded after 30 minutes."},
+  {"chunk_id": "security/security-operations/sirt/security-incident-communication-plan.md::0012", "kind": "contradicted", "claim": "Back-up approvers are engaged only after 24 hours without a response."},
+  {"chunk_id": "security/security-operations/sirt/security-incident-communication-plan.md::0012", "kind": "not_stated", "claim": "Approvers are contacted through a phone call from the CEO."},
+
+  {"chunk_id": "people-group/learning-and-development/growth-and-development/_index.md::0007", "kind": "supported", "claim": "Unspent Growth and Development budgets do not carry over to the following year."},
+  {"chunk_id": "people-group/learning-and-development/growth-and-development/_index.md::0007", "kind": "contradicted", "claim": "Unspent Growth and Development budgets roll over to the next year."},
+  {"chunk_id": "people-group/learning-and-development/growth-and-development/_index.md::0007", "kind": "not_stated", "claim": "Growth and Development funds cannot be used for conference travel."}
+]

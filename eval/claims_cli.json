@@ -1,0 +1,46 @@
+[
+  {"chunk_id": "people-group/offboarding/_index.md::0017", "kind": "supported", "claim": "All offboarding tasks need to be completed within 5 days of the offboarding date."},
+  {"chunk_id": "people-group/offboarding/_index.md::0017", "kind": "supported", "claim": "Access to critical systems like Slack is removed within the first 24 hours of offboarding."},
+  {"chunk_id": "people-group/offboarding/_index.md::0017", "kind": "contradicted", "claim": "Offboarding tasks can take up to 30 days to complete."},
+  {"chunk_id": "people-group/offboarding/_index.md::0017", "kind": "not_stated", "claim": "Offboarded team members must return their laptop within 10 days."},
+
+  {"chunk_id": "security/corporate/end-user-services/laptop-management/_index.md::0000", "kind": "supported", "claim": "New hire laptop orders are usually prioritized over refreshes."},
+  {"chunk_id": "security/corporate/end-user-services/laptop-management/_index.md::0000", "kind": "supported", "claim": "The newest laptop model will not be immediately available when announced."},
+  {"chunk_id": "security/corporate/end-user-services/laptop-management/_index.md::0000", "kind": "contradicted", "claim": "Laptop refreshes are prioritized over new hire orders."},
+  {"chunk_id": "security/corporate/end-user-services/laptop-management/_index.md::0000", "kind": "contradicted", "claim": "New laptop models are in stock as soon as they are announced."},
+
+  {"chunk_id": "people-policies/_index.md::0002", "kind": "supported", "claim": "Team members may not directly supervise a family member."},
+  {"chunk_id": "people-policies/_index.md::0002", "kind": "contradicted", "claim": "GitLab never hires family members of current team members."},
+  {"chunk_id": "people-policies/_index.md::0002", "kind": "not_stated", "claim": "Romantic relationships at work must be reported to HR within 30 days."},
+
+  {"chunk_id": "security/security-operations/sirt/_index.md::0003", "kind": "supported", "claim": "The SIRT is on call 24/7/365."},
+  {"chunk_id": "security/security-operations/sirt/_index.md::0003", "kind": "supported", "claim": "The SIRT reviews incidents in a recurring meeting on Monday."},
+  {"chunk_id": "security/security-operations/sirt/_index.md::0003", "kind": "contradicted", "claim": "The SIRT is only available during business hours."},
+  {"chunk_id": "security/security-operations/sirt/_index.md::0003", "kind": "contradicted", "claim": "SIRT incident review meetings happen once a month."},
+
+  {"chunk_id": "security/customer-requests.md::0003", "kind": "supported", "claim": "GitLab cannot perform log-dives exceeding a 1-month time window."},
+  {"chunk_id": "security/customer-requests.md::0003", "kind": "supported", "claim": "Log-dives longer than 7 days take longer to complete."},
+  {"chunk_id": "security/customer-requests.md::0003", "kind": "contradicted", "claim": "GitLab can perform log-dives covering up to one year of logs."},
+  {"chunk_id": "security/customer-requests.md::0003", "kind": "not_stated", "claim": "Log-dive requests are completed within 48 hours."},
+
+  {"chunk_id": "security/identity/_index.md::0009", "kind": "supported", "claim": "No-code should not be relied on for complex workflows without good reason."},
+  {"chunk_id": "security/identity/_index.md::0009", "kind": "contradicted", "claim": "No-code tools are the preferred approach for complex identity workflows."},
+
+  {"chunk_id": "people-group/talent-assessment.md::0029", "kind": "supported", "claim": "Too New to Rate team members are not required to complete a self-assessment."},
+  {"chunk_id": "people-group/talent-assessment.md::0029", "kind": "contradicted", "claim": "Too New to Rate team members receive a formal 9-box rating."},
+  {"chunk_id": "people-group/talent-assessment.md::0029", "kind": "contradicted", "claim": "Too New to Rate team members must complete a self-assessment."},
+
+  {"chunk_id": "people-group/talent-assessment.md::0042", "kind": "supported", "claim": "The Mid-Year check-in is a discussion between a team member and their manager."},
+  {"chunk_id": "people-group/talent-assessment.md::0042", "kind": "not_stated", "claim": "Mid-Year check-in results determine annual bonuses."},
+
+  {"chunk_id": "people-group/promotions-transfers.md::0032", "kind": "supported", "claim": "Out-of-cycle promotion requests route for approval to the manager, next level manager and e-Group leader."},
+  {"chunk_id": "people-group/promotions-transfers.md::0032", "kind": "contradicted", "claim": "Out-of-cycle promotions do not need approval from an e-Group leader."},
+  {"chunk_id": "people-group/promotions-transfers.md::0032", "kind": "not_stated", "claim": "Out-of-cycle promotions come with a minimum 15% pay increase."},
+
+  {"chunk_id": "people-group/time-off-and-absence/time-away-philosophy.md::0002", "kind": "supported", "claim": "Team members are encouraged to take time off for mental health."},
+  {"chunk_id": "people-group/time-off-and-absence/time-away-philosophy.md::0002", "kind": "not_stated", "claim": "Team members get three paid volunteering days per year."},
+  {"chunk_id": "people-group/time-off-and-absence/time-away-philosophy.md::0002", "kind": "contradicted", "claim": "Team members must use the public holiday dates set by the company and cannot choose different dates."},
+
+  {"chunk_id": "security/security-observations-risk-management.md::0000", "kind": "supported", "claim": "New sources join the USRM process through a phased approach."},
+  {"chunk_id": "security/security-observations-risk-management.md::0000", "kind": "not_stated", "claim": "USRM findings must be fixed within 90 days."}
+]
