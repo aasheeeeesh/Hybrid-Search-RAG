@@ -3,7 +3,7 @@
 Living tracker for the Hybrid Search RAG project. Update the status boxes as phases complete.
 This file also serves as context recovery: if a chat session loses history, this rebuilds it.
 
-Last updated: 2026-11-02 (retrieval-only decision; Phase 7.5 done)
+Last updated: 2026-11-02 (retrieval-only decision; Phases 7.5 and 8 done)
 
 ---
 
@@ -26,7 +26,7 @@ retrieval recall. Retrieval-only: everything must run free, with no paid API cal
 | NLI (verification) | `cross-encoder/nli-deberta-v3-base` | Local claim-vs-chunk entailment |
 | Generation | None by default; `src/generate.py` kept as optional | No API credit, so the project is retrieval-only (2026-11-02) |
 | No LangChain | Write pipeline from scratch (~400 lines) | Understanding + interview credibility |
-| Framework | FastAPI endpoint; Streamlit UI last (optional) | Demo value after retrieval works |
+| Framework | FastAPI endpoint; no Streamlit, `/docs` covers demos | Demo value after retrieval works |
 
 ## Resume line (true today)
 
@@ -185,10 +185,22 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
     passages also score 0.98+ for contradiction. `eval/claims_cli.json` has now been seen, so
     testing another change needs new claims.
 
-- ⬜ **Phase 8 — API + polish** (1–2 days)
-  - FastAPI `POST /query` returning top passages with sources and the "I don't know" gate
-  - README with eval table + diagram
-  - Optional Streamlit UI
+- ✅ **Phase 8 — API + polish** (runs locally, no API key)
+  - ✅ `src/api.py`: `POST /query` returns top passages with sources behind the score gate;
+    `GET /health`; models load at startup. `MIN_RELEVANCE_SCORE` moved to `src/rerank.py`
+    so the API never imports `anthropic`, which moved to its own `generation` extra
+  - ✅ 15 tests with retrieval faked (45 total)
+  - ✅ Real server with real models over HTTP: answerable questions return passages,
+    "What is the best pizza topping?" is blocked (-10.82), bad input gets 422.
+    `anthropic` and the NLI model aren't loaded
+  - Measured: about 790 MB memory, 15–35 s startup, about 3 s per request with the laptop
+    short on free memory. The 0.9 s reranker benchmark wasn't reproduced; cause not isolated
+  - Finding: "how do I take unpaid leave" tops out at 2.12, below the lowest gold question
+    (3.02) but above the gate. This fits the warning that gold questions score high, so
+    don't raise the gate from gold scores alone
+  - Not in `/query`: the claim checker, too slow and too often wrong for a live request.
+    Still open: a near-miss question gets `confident: true`
+  - Dropped: Streamlit UI. `/docs` covers demos and it would add a dependency
 
 **Estimated total:** ~2–3 weeks part-time.
 

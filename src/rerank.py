@@ -39,6 +39,14 @@ MAX_LENGTH = 512
 # Recall@50 = 92.9% on the 42-question gold set.
 DEFAULT_DEPTH = 20
 
+# Below this top reranked score, treat the question as off-topic.
+# From eval/calibrate_gate.py: off-topic questions top out at -9.78 and the
+# lowest answerable question scores 3.02. -2 leaves a margin on both sides,
+# which matters because gold questions (built from headings) likely score higher
+# than real queries. It does NOT catch near-miss questions: "How long is GitLab's
+# sabbatical leave?" scores 4.34 though the corpus never mentions sabbaticals.
+MIN_RELEVANCE_SCORE = -2.0
+
 # ---------------------------------------------------------------------------
 # Lazy singletons, one per model name — same rationale as
 # retrieve_dense.get_model().
