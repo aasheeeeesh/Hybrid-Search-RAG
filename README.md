@@ -4,11 +4,11 @@ A retrieval system for natural-language questions over a corpus of internal comp
 documentation. It combines **BM25 keyword search** and **dense vector search** with
 **Reciprocal Rank Fusion**, reorders the fused candidates with a **cross-encoder
 reranker**, and is measured by a gold-set **evaluation harness** (Recall@k, MRR).
-Cited answer generation is built but not yet run against the live API; NLI citation
-verification comes after that.
+A local **NLI checker** tests whether a passage supports a statement.
 
-> **Status:** Phases 0–6 complete. Phase 7 (generation with citations) is built and
-> tested against a simulated API; the live run is pending, so answer quality is unmeasured.
+> **Status:** Retrieval-only. Phases 0–6 and 7.5 are complete. An optional Claude answer
+> generator (Phase 7) is included but has never completed a live API call, so it is tested
+> only against a simulated API and answer quality is unmeasured.
 
 ## Eval results
 
@@ -98,10 +98,7 @@ data/raw/*.md (556 GitLab Handbook files)
                        · hybrid top-20 → MiniLM-L-6 → top-k
                                 │
                                 ▼
-                     Phase 7: Claude answer with citations
-                                │
-                                ▼
-                     Phase 7.5: NLI citation verification
+                     Phase 7.5: NLI claim checker (local)
                                 │
                                 ▼
                      Phase 8: FastAPI /query endpoint
@@ -124,8 +121,8 @@ under 5 minutes end to end.
 - **Dense retrieval:** `sentence-transformers` (`BAAI/bge-small-en-v1.5`), `chromadb`
 - **Reranking:** `cross-encoder/ms-marco-MiniLM-L-6-v2` via `sentence-transformers`
   (`BAAI/bge-reranker-base` selectable for comparison)
-- **Verification (planned):** NLI model (`nli-deberta-v3-base`)
-- **Generation:** Claude API (`claude-opus-5-5`) with structured output
+- **Verification:** `cross-encoder/nli-deberta-v3-base` via `sentence-transformers`
+- **Generation (optional, never run live):** Claude API (`claude-opus-5-5`) with structured output
 - **Serving (planned):** FastAPI
 
 All local models run **on CPU by default**. No GPU required.
@@ -161,12 +158,18 @@ python -m src.rerank           "how do I take unpaid leave" --k 5   # hybrid + r
 python -m eval.run_eval
 python -m eval.run_eval --retriever rerank --rerank-model BAAI/bge-reranker-base
 
-# 6. Answer with citations (needs API credit; put ANTHROPIC_API_KEY in a .env file)
+# 6. Check a statement against the corpus, and measure the checker
+python -m src.verify "Unspent growth and development budgets roll over"
+python -m eval.eval_verify --claims eval/claims_cli.json --k 5
+
+# 7. Tests and the "I don't know" gate (no API calls or cost)
 pip install -e ".[api,dev]"
+python -m eval.calibrate_gate
+python -m pytest tests
+
+# Optional: Claude answers (paid API; put ANTHROPIC_API_KEY in a .env file)
 python -m src.generate "how do I take unpaid leave"
 python -m src.generate "how do I take unpaid leave" --dry-run   # print prompt, no API call
-python -m eval.calibrate_gate                                   # no API call
-python -m pytest tests                                          # simulated API, no cost
 ```
 
 ## Build phases
@@ -180,9 +183,9 @@ python -m pytest tests                                          # simulated API,
 | 4 | Hybrid fusion (Reciprocal Rank Fusion) | ✅ |
 | 5 | Evaluation harness (recall@5: BM25 57.1% / Dense 64.3% / Hybrid 71.4%) | ✅ |
 | 6 | Cross-encoder reranking (MiniLM-L-6; MRR 0.527 → 0.599, Recall@1 40.5% → 50.0%) | ✅ |
-| 7 | Generation with forced citations (Claude API); built, live run pending | 🔄 |
-| 7.5 | NLI-based citation verification (faithfulness score) | ⬜ |
-| 8 | FastAPI `/query` endpoint + polish | ⬜ |
+| 7 | Optional generation with forced citations (Claude API); never run live, simulated API only | ⏸️ |
+| 7.5 | NLI claim checker (held-out, top 5 chunks: kept 13/15 supported, caught 16/19 unsupported) | ✅ |
+| 8 | FastAPI `/query` returning passages + polish | ⬜ |
 
 ## Known caveats
 
@@ -203,8 +206,24 @@ python -m pytest tests                                          # simulated API,
 - **The retrieval gate only catches off-topic questions.** At a threshold of -2 it
   blocks 5/5 off-topic questions, 2/7 near-misses and 0/42 answerable questions
   (`eval/calibrate_gate.py`; small, single-use sample). "How long is GitLab's sabbatical
-  leave?" scores 4.34 though the corpus never mentions sabbaticals, so near-misses rely
-  on Claude reporting that the documents don't answer them. That is not yet measured.
+  leave?" scores 4.34 though the corpus never mentions sabbaticals, so retrieval alone
+  returns passages for these questions.
+- **The NLI checker makes mistakes, and its test set is small.** On 34 held-out claims
+  (`eval/claims_cli.json`) checked against the top 5 reranked chunks, as the CLI does, it
+  kept 13/15 supported claims and caught 16/19 unsupported ones (9/12 contradicted, 7/7 not
+  stated). Against only the chunk each claim was written from, it kept 12/15 and caught
+  19/19. I wrote the claims myself, so this measures the checker on hand-written statements,
+  not the faithfulness of generated answers.
+- **"Supported" from the CLI can still be wrong: 3 of the 16 held-out claims it passed were
+  false.** Each matched a passage on a nearby topic: "Offboarding tasks can take up to 30
+  days to complete" passed at 0.99 on a sentence about having 30 days to leave the UAE after
+  a visa is cancelled. Raising the threshold from 0.5 to 0.9 cut these from 6 to 3, but these
+  scores are too high for a threshold to remove. Always read the evidence it prints.
+- **"No supporting passage found" doesn't mean false.** The checker also misses true claims:
+  2 of the 15 held-out supported claims failed, likely because the fact is spread across a
+  list or the passage lacks the title or heading that gives it context.
+- **Very long chunks are slow to check.** Passages run at about 0.15 s each on CPU, so a
+  typical chunk takes under 2 s and the largest (1,199 passages) takes about 3 minutes.
 
 ## Repo layout
 
@@ -218,17 +237,23 @@ src/
 ├── compare_retrievers.py  # Phase 3/4 — side-by-side retriever comparison
 ├── retrieve_hybrid.py     # Phase 4  — RRF fusion + CLI
 ├── rerank.py              # Phase 6  — cross-encoder rerank + CLI
-└── generate.py            # Phase 7  — cited answers from Claude + CLI
+├── generate.py            # Phase 7  — optional cited answers from Claude + CLI
+└── verify.py              # Phase 7.5 — NLI claim checker + CLI
 
 eval/
 ├── generate_questions.py  # Phase 5  — gold Q&A set generator
 ├── questions.json         # Phase 5  — 42 gold question → chunk_id pairs
 ├── run_eval.py            # Phase 5/6 — recall@1/5/10 + MRR + latency harness
 ├── unanswerable.json      # Phase 7  — 12 questions the corpus can't answer
-└── calibrate_gate.py      # Phase 7  — measures the "I don't know" threshold
+├── calibrate_gate.py      # Phase 7  — measures the "I don't know" threshold
+├── claims.json            # Phase 7.5 — 39 labelled claims, used to choose settings
+├── claims_long.json       # Phase 7.5 — 18 labelled claims on long chunks
+├── claims_cli.json        # Phase 7.5 — 34 labelled claims, held out for the final test
+└── eval_verify.py         # Phase 7.5 — measures the claim checker
 
 tests/
-└── test_generate.py       # Phase 7  — generation tests against a simulated API
+├── test_generate.py       # Phase 7  — generation tests against a simulated API
+└── test_verify.py         # Phase 7.5 — checker logic with a fake model
 
 data/
 ├── raw/                   # source Markdown (gitignored, redownloadable)

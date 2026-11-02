@@ -1,0 +1,23 @@
+[
+  {"chunk_id": "people-policies/leave-of-absence/us.md::0015", "kind": "supported", "claim": "Employees working 20 or more hours per week are eligible for New York Paid Family Leave after 26 consecutive weeks of employment."},
+  {"chunk_id": "people-policies/leave-of-absence/us.md::0015", "kind": "supported", "claim": "New York Paid Family Leave cannot be used for your own qualifying military event."},
+  {"chunk_id": "people-policies/leave-of-absence/us.md::0015", "kind": "supported", "claim": "New York Paid Family Leave may be available when your minor dependent child is under a COVID-19 quarantine order."},
+  {"chunk_id": "people-policies/leave-of-absence/us.md::0015", "kind": "contradicted", "claim": "Part-time employees are eligible for New York Paid Family Leave after working 30 days."},
+  {"chunk_id": "people-policies/leave-of-absence/us.md::0015", "kind": "contradicted", "claim": "You can take New York Paid Family Leave for your own health condition."},
+  {"chunk_id": "people-policies/leave-of-absence/us.md::0015", "kind": "not_stated", "claim": "New York Paid Family Leave pays 100% of your regular salary."},
+
+  {"chunk_id": "security/security-assurance/governance/security-assurance-automation.md::0012", "kind": "supported", "claim": "The maturity scale is more likely to be applied across system and control combinations."},
+  {"chunk_id": "security/security-assurance/governance/security-assurance-automation.md::0012", "kind": "supported", "claim": "Not every control will have a potential rating of 6 right away."},
+  {"chunk_id": "security/security-assurance/governance/security-assurance-automation.md::0012", "kind": "contradicted", "claim": "A control's potential rating should never change."},
+  {"chunk_id": "security/security-assurance/governance/security-assurance-automation.md::0012", "kind": "not_stated", "claim": "Control automation maturity is reassessed every quarter."},
+
+  {"chunk_id": "security/product-security/security-platforms-architecture/application-security/appsec-reviews.md::0007", "kind": "supported", "claim": "Security reviews aim to help reduce vulnerabilities."},
+  {"chunk_id": "security/product-security/security-platforms-architecture/application-security/appsec-reviews.md::0007", "kind": "supported", "claim": "Exposing a new API endpoint is a reason to engage the application security team."},
+  {"chunk_id": "security/product-security/security-platforms-architecture/application-security/appsec-reviews.md::0007", "kind": "contradicted", "claim": "Adding a new authentication mechanism does not require engaging the application security team."},
+  {"chunk_id": "security/product-security/security-platforms-architecture/application-security/appsec-reviews.md::0007", "kind": "not_stated", "claim": "Application security reviews must be completed within five business days."},
+
+  {"chunk_id": "people-group/people-ops-tech-analytics/people-analytics/data-guide.md::0017", "kind": "supported", "claim": "The team member directory table has one row per team member per valid_from/valid_to combination."},
+  {"chunk_id": "people-group/people-ops-tech-analytics/people-analytics/data-guide.md::0017", "kind": "supported", "claim": "Sensitive columns are only visible to team members with the analyst_people role."},
+  {"chunk_id": "people-group/people-ops-tech-analytics/people-analytics/data-guide.md::0017", "kind": "contradicted", "claim": "Sensitive columns in the table are visible to every team member."},
+  {"chunk_id": "people-group/people-ops-tech-analytics/people-analytics/data-guide.md::0017", "kind": "not_stated", "claim": "The team member directory table is refreshed every six hours."}
+]

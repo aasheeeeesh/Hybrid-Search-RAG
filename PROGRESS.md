@@ -3,15 +3,15 @@
 Living tracker for the Hybrid Search RAG project. Update the status boxes as phases complete.
 This file also serves as context recovery: if a chat session loses history, this rebuilds it.
 
-Last updated: 2026-11-01 (Phase 7 built; live API run pending credit)
+Last updated: 2026-11-02 (retrieval-only decision; Phase 7.5 done)
 
 ---
 
 ## Project in one line
 
-Hybrid retrieval RAG (BM25 + dense + RRF fusion + cross-encoder rerank + NLI citation
-verification) over a subset of the public GitLab Handbook, with an eval harness that
-measures retrieval recall and answer faithfulness.
+Hybrid retrieval (BM25 + dense + RRF fusion + cross-encoder rerank) with a local NLI claim
+checker over a subset of the public GitLab Handbook, with an eval harness that measures
+retrieval recall. Retrieval-only: everything must run free, with no paid API calls.
 
 ## Locked decisions
 
@@ -24,7 +24,7 @@ measures retrieval recall and answer faithfulness.
 | Embedding model | `BAAI/bge-small-en-v1.5` (384-dim, ~130 MB) | Fast on CPU, plenty for this corpus |
 | Reranker | `ms-marco-MiniLM-L-6-v2` cross-encoder | Beat `bge-reranker-base` on the gold set at ~6.5× lower latency (Phase 6) |
 | NLI (verification) | `cross-encoder/nli-deberta-v3-base` | Local claim-vs-chunk entailment |
-| Generation | Claude API | Best answers; API key added later |
+| Generation | None by default; `src/generate.py` kept as optional | No API credit, so the project is retrieval-only (2026-11-02) |
 | No LangChain | Write pipeline from scratch (~400 lines) | Understanding + interview credibility |
 | Framework | FastAPI endpoint; Streamlit UI last (optional) | Demo value after retrieval works |
 
@@ -34,8 +34,9 @@ measures retrieval recall and answer faithfulness.
 > reranking, measured by an eval harness on a 42-question gold set. Reranked hybrid
 > reached Recall@5 of 76.2% (BM25 57.1%, dense 64.3%) and MRR@10 of 0.599 (BM25 0.458).
 
-Add cited answer generation once a live run passes, and NLI citation verification and
-answer faithfulness only after Phase 7.5 is built and measured.
+Don't claim working answer generation or answer faithfulness: `src/generate.py` has never
+completed a live call. The NLI checker can be described as a claim checker measured on 18
+held-out hand-written claims, a small sample.
 
 ---
 
@@ -144,7 +145,7 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
   - ✅ Eval harness: `rerank` retriever, Hits@5 column, per-query latency (warmup excluded)
   - Note: running two rerank evals at once ran the machine out of memory; run one at a time
 
-- 🔄 **Phase 7 — Generation with citations** (built; live run blocked on API credit)
+- ⏸️ **Phase 7 — Generation with citations** (optional; built, never run live)
   - ✅ `src/generate.py`: top reranked chunks → token-budgeted numbered context → Claude
     structured output (claims with document-id citations) → `[source §heading]` display
   - ✅ Claims with no valid citation are dropped and reported, never shown as answers
@@ -153,21 +154,39 @@ Legend: ✅ done · 🔄 in progress · ⬜ not started
     from the corpus): gate at -2 blocks 5/5 off-topic and 2/7 near-miss, 0/42 answerable
   - ✅ 17 tests pass against a simulated API; CLI gate and `--dry-run` run for real;
     the real API rejected an invalid key as expected
-  - ⬜ **Live run:** the API accepting the request is unverified (last attempt stopped at
-    "credit balance is too low"), as are answer quality and near-miss handling. Run the
-    12 unanswerable and some gold questions, then mark this phase done.
+  - Not planned: a live run. No API credit is expected, so the API accepting the request,
+    answer quality and near-miss handling stay unverified (last attempt stopped at
+    "credit balance is too low").
   - Finding: the gate only handles off-topic questions. "How long is GitLab's sabbatical
     leave?" scores 4.34, above the lowest answerable question (3.02), though the corpus
-    never mentions sabbaticals. Near-misses depend on Claude's `answerable` field.
+    never mentions sabbaticals.
 
-- ⬜ **Phase 7.5 — Citation verification** (1–2 days)
-  - Tier 1: structural (cited ids exist in context, claims have citations)
-  - Tier 2: NLI entailment (claim vs cited chunk)
-  - Tier 3: flag/strip/regenerate unsupported claims; return faithfulness field
-  - Add faithfulness metric to eval harness
+- ✅ **Phase 7.5 — NLI claim checker** (runs locally)
+  - ✅ `src/verify.py`: splits a chunk into 3-sentence passages; a claim is supported if any
+    passage entails it. `verify_claims` separates supported from unsupported claims and
+    returns their share; CLI checks a statement against the top reranked chunks
+  - ✅ `eval/eval_verify.py`: window chosen on 39 claims from short chunks, then tested on 18
+    from long chunks at threshold 0.5: kept 7/9 supported, caught 8/9 unsupported. The whole
+    chunk kept 5/9, caught 9/9
+  - ✅ Threshold raised from 0.5 to 0.9 after the CLI said "Unspent growth and development
+    budgets roll over" was supported (0.53, unrelated passage). Chosen on those 57 claims
+    plus 4 roll-over phrasings, so passing those says little. Tested once on 34 new claims
+    (`eval/claims_cli.json`, written before scoring) against the top 5 reranked chunks:
+    - Threshold 0.5: kept 13/15 supported, caught 13/19 unsupported, precision 0.68
+    - Threshold 0.9: kept 13/15 supported, caught 16/19 unsupported, precision 0.81
+    - Threshold 0.9, only the chunk each claim came from: kept 12/15, caught 19/19
+  - ✅ 13 logic tests with a fake model
+  - Dropped: regenerating bad claims and a faithfulness score on real answers. Both need
+    generated answers, which need the API. The share from `verify_claims` is untested on them.
+  - Still wrong: 3 of the 16 held-out claims the CLI passed were false, each at 0.97 or above
+    on a passage about a nearby topic, so a higher threshold won't remove them.
+  - Tried and not used: adding title + heading to each passage scored one claim better on
+    the 57 but checks every passage twice. A contradiction veto looks unusable: unrelated
+    passages also score 0.98+ for contradiction. `eval/claims_cli.json` has now been seen, so
+    testing another change needs new claims.
 
 - ⬜ **Phase 8 — API + polish** (1–2 days)
-  - FastAPI `POST /query`
+  - FastAPI `POST /query` returning top passages with sources and the "I don't know" gate
   - README with eval table + diagram
   - Optional Streamlit UI
 
